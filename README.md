@@ -55,7 +55,19 @@
     <input type="password" id="adminPassword" placeholder="비밀번호"/>
     <button onclick="verifyAdmin()">입력</button>
   </div>
+function showAdmin() {
+  document.getElementById("adminPopup").classList.remove("hidden");
+}
 
+function verifyAdmin() {
+  const pw = document.getElementById("adminPassword").value;
+  if (pw === "krabby123") {
+    document.getElementById("adminPanel").classList.remove("hidden");
+    document.getElementById("adminPopup").classList.add("hidden");
+  } else {
+    alert("비밀번호가 틀렸습니다.");
+  }
+}
   <!-- 각 섹션들 -->
   <section id="menu" class="hidden">
     <h2>오늘의 메뉴</h2>
