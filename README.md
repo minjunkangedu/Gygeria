@@ -1,240 +1,254 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <title>🧽 스폰지밥 월드</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>크러스티 크랩 사이트</title>
   <style>
     body {
       font-family: 'Arial', sans-serif;
-      background: #f0f8ff;
-      text-align: center;
+      background-color: #fffde7;
       padding: 20px;
     }
     button {
       margin: 5px;
-      padding: 10px 20px;
-      font-size: 16px;
+      padding: 10px 15px;
+      background-color: #ffca28;
+      border: none;
+      border-radius: 5px;
       cursor: pointer;
+    }
+    button:hover {
+      background-color: #ffa000;
     }
     .hidden {
       display: none;
     }
-    #gameArea {
-      width: 300px;
-      height: 300px;
-      position: relative;
-      border: 4px double #000;
-      background: url('https://i.imgur.com/pymJJ3s.jpg') center/cover;
-      margin: 0 auto;
-    }
-    .plankton {
-      width: 40px;
-      position: absolute;
-      cursor: pointer;
-      transition: transform 0.2s ease;
-    }
-    #gachaResult img {
-      width: 100px;
-      margin: 10px;
-    }
-    #collection img {
-      width: 80px;
-      margin: 5px;
-    }
   </style>
 </head>
 <body>
+  <h1>🏖️ 크러스티 크랩에 오신 걸 환영합니다!</h1>
+  <p>손님: <span id="displayName"></span> / 코인: <span id="coinDisplay">0</span></p>
 
-  <h1>🧽 스폰지밥 월드</h1>
-  <p>코인: <span id="coinCount">0</span></p>
+  <button onclick="showSection('menu')">🍔 메뉴</button>
+  <button onclick="showSection('gacha')">🎰 가챠</button>
+  <button onclick="showSection('pokedex')">📘 도감</button>
+  <button onclick="showSection('shop')">🛒 상점</button>
+  <button onclick="showSection('jokes')">🎭 개그</button>
+  <button onclick="showSection('regulars')">🌟 단골</button>
+  <button onclick="showAdmin()">🔑 관리자</button>
+  <button onclick="showSection('planktonGame')">⚔️ 플랑크톤의 침략</button>
 
-  <button onclick="showSection('minigame')">🛡️ 플랑크톤의 침략</button>
-  <button onclick="showSection('gacha')">🎰 뽑기</button>
-  <button onclick="showSection('collection')">📘 도감</button>
+  <div id="namePopup" class="hidden">
+    <p>처음 오셨군요! 이름을 정해주세요:</p>
+    <input id="usernameInput" placeholder="이름 입력"/>
+    <button onclick="saveName()">저장</button>
+  </div>
 
-  <!-- 플랑크톤 미니게임 -->
-  <section id="minigame" class="hidden">
-    <h2>🛡️ 플랑크톤의 침략!</h2>
-    <p>게살버거 비법을 지키세요!</p>
-    <p>남은 시간: <span id="gameTime">20</span>초</p>
-    <p>막은 침입자: <span id="blockedCount">0</span> / 침입한 플랑크톤: <span id="escapedCount">0</span></p>
-    <div id="gameArea"></div>
-    <p id="gameMessage"></p>
-    <audio id="popSound" src="https://freesound.org/data/previews/341/341695_3248244-lq.mp3"></audio>
+  <div id="adminPopup" class="hidden">
+    <p>관리자 비밀번호 입력:</p>
+    <input type="password" id="adminPassword" placeholder="비밀번호"/>
+    <button onclick="verifyAdmin()">입력</button>
+  </div>
+
+  <section id="menu" class="hidden">
+    <h2>오늘의 메뉴</h2>
+    <button onclick="orderMenu('크래비 버거', 5)">크래비 버거 (5코인)</button>
+    <button onclick="orderMenu('씨위드 샐러드', 4)">씨위드 샐러드 (4코인)</button>
+    <h3>🌟 특별 메뉴</h3>
+    <button onclick="orderMenu('황금버거', 10)">황금버거 (10코인)</button>
   </section>
 
-  <!-- 뽑기 시스템 -->
   <section id="gacha" class="hidden">
-    <h2>🎰 뽑기</h2>
-    <p>코인 5개로 뽑기를 진행합니다.</p>
-    <button onclick="drawGacha()">뽑기 진행</button>
+    <h2>스폰지밥 캐릭터 가챠</h2>
+    <button onclick="drawGacha()">가챠 뽑기 (10코인)</button>
     <div id="gachaResult"></div>
   </section>
 
-  <!-- 도감 -->
-  <section id="collection" class="hidden">
-    <h2>📘 도감</h2>
-    <div id="collectionList"></div>
+  <section id="pokedex" class="hidden">
+    <h2>도감</h2>
+    <ul id="pokedexList"></ul>
   </section>
 
+  <section id="shop" class="hidden">
+    <h2>상점</h2>
+    <button onclick="buyItem('행운버거', 5)">행운버거 (5코인)</button>
+    <button onclick="buyItem('경험치 스프', 8)">경험치 스프 (8코인)</button>
+  </section>
+
+  <section id="jokes" class="hidden">
+    <h2>개그 코너</h2>
+    <button onclick="tellJoke()">개그 듣기</button>
+    <p id="jokeOutput"></p>
+  </section>
+
+  <section id="regulars" class="hidden">
+    <h2>단골 손님</h2>
+    <ul>
+      <li>뚱이</li>
+      <li>징징이</li>
+      <li>플랑크톤</li>
+    </ul>
+  </section>
+
+  <section id="adminPanel" class="hidden">
+    <h2>관리자 메뉴</h2>
+    <input type="number" id="coinAmount" placeholder="코인 수">
+    <button onclick="addCoins()">코인 지급</button>
+  </section>
+
+  <section id="planktonGame" class="hidden">
+    <h2>플랑크톤의 침략! 게살버거 비법을 지켜라!</h2>
+    <p>플랑크톤이 침략 중입니다! 클릭해서 막아주세요!</p>
+    <button onclick="stopPlankton()">플랑크톤 막기</button>
+    <div id="planktonStatus"></div>
+  </section>
+
+  <!-- Firebase + Logic Script -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
   <script>
-    let coins = 0;
-    let collection = [];
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+      databaseURL: "https://YOUR_PROJECT_ID.firebaseio.com",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_PROJECT_ID.appspot.com",
+      messagingSenderId: "YOUR_SENDER_ID",
+      appId: "YOUR_APP_ID"
+    };
 
-    const characters = [
-      { name: "꽝", image: "https://i.imgur.com/3sK3w5O.png", rarity: "common" },
-      { name: "스폰지밥", image: "https://i.imgur.com/klZbphE.png", rarity: "common" },
-      { name: "뚱이", image: "https://i.imgur.com/5xgXg8M.png", rarity: "common" },
-      { name: "징징이", image: "https://i.imgur.com/1uZz3cL.png", rarity: "common" },
-      { name: "광금 스폰지밥", image: "https://i.imgur.com/XYZ1234.png", rarity: "rare" }
-    ];
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
 
-    // 저장/로드 함수
-    function saveData() {
-      localStorage.setItem("spongeCoins", coins);
-      localStorage.setItem("spongeCollection", JSON.stringify(collection));
-    }
+    let user = localStorage.getItem("userName") || "";
+    let coins = parseInt(localStorage.getItem("coins")) || 0;
+    let pokedex = JSON.parse(localStorage.getItem("pokedex")) || [];
+    let planktonAttacks = 0;
 
-    function loadData() {
-      const savedCoins = localStorage.getItem("spongeCoins");
-      const savedCollection = localStorage.getItem("spongeCollection");
-
-      coins = savedCoins ? parseInt(savedCoins) : 0;
-      collection = savedCollection ? JSON.parse(savedCollection) : [];
-      updateCoins();
-    }
-
-    function updateCoins() {
-      document.getElementById("coinCount").innerText = coins;
-      saveData();
+    function saveName() {
+      user = document.getElementById("usernameInput").value;
+      localStorage.setItem("userName", user);
+      document.getElementById("namePopup").classList.add("hidden");
+      document.getElementById("displayName").innerText = user;
+      loadFromServer();
     }
 
     function showSection(id) {
       document.querySelectorAll("section").forEach(sec => sec.classList.add("hidden"));
       document.getElementById(id).classList.remove("hidden");
-      if (id === "minigame") startGame();
-      if (id === "collection") updateCollection();
     }
 
-    // 미니게임 로직
-    let gameInterval;
-    let spawnInterval;
-    let blocked = 0;
-    let escaped = 0;
-    let gameTime = 20;
-
-    function startGame() {
-      blocked = 0;
-      escaped = 0;
-      gameTime = 20;
-      document.getElementById("gameMessage").innerText = "";
-      document.getElementById("blockedCount").innerText = blocked;
-      document.getElementById("escapedCount").innerText = escaped;
-      document.getElementById("gameTime").innerText = gameTime;
-      document.getElementById("gameArea").innerHTML = "";
-
-      gameInterval = setInterval(() => {
-        gameTime--;
-        document.getElementById("gameTime").innerText = gameTime;
-        if (gameTime <= 0) endGame();
-      }, 1000);
-
-      spawnInterval = setInterval(spawnPlankton, 800);
+    function updateCoins() {
+      document.getElementById("coinDisplay").innerText = coins;
+      localStorage.setItem("coins", coins);
+      saveToServer();
     }
 
-    function spawnPlankton() {
-      const plankton = document.createElement("img");
-      plankton.src = "https://i.imgur.com/klZbphE.png";
-      plankton.className = "plankton";
-      plankton.style.left = Math.random() * 260 + "px";
-      plankton.style.top = Math.random() * 260 + "px";
-
-      plankton.onclick = () => {
-        blocked++;
-        document.getElementById("blockedCount").innerText = blocked;
-        document.getElementById("popSound").play();
-        plankton.style.transform = "scale(0)";
-        setTimeout(() => plankton.remove(), 200);
-      };
-
-      document.getElementById("gameArea").appendChild(plankton);
-
-      setTimeout(() => {
-        if (document.body.contains(plankton)) {
-          escaped++;
-          document.getElementById("escapedCount").innerText = escaped;
-          plankton.remove();
-        }
-      }, 1500);
-    }
-
-    function endGame() {
-      clearInterval(gameInterval);
-      clearInterval(spawnInterval);
-      document.getElementById("gameArea").innerHTML = "";
-
-      if (escaped <= 5) {
-        const reward = 10;
-        coins += reward;
+    function addCoins() {
+      const amount = parseInt(document.getElementById("coinAmount").value);
+      if (!isNaN(amount)) {
+        coins += amount;
         updateCoins();
-        document.getElementById("gameMessage").innerText = `🎉 성공! 플랑크톤을 막아냈어요! +${reward} 코인`;
-      } else {
-        document.getElementById("gameMessage").innerText = "😱 플랑크톤이 비법서를 가져갔어요!";
       }
     }
 
-    // 뽑기 로직
     function drawGacha() {
-      if (coins < 5) {
-        alert("코인이 부족합니다!");
-        return;
-      }
-      coins -= 5;
+      const characters = ["스폰지밥", "징징이", "뚱이", "Mr. Krabs", "샌디", "플랑크톤"];
+      if (coins < 10) return alert("코인이 부족합니다!");
+      coins -= 10;
+      const picked = characters[Math.floor(Math.random() * characters.length)];
+      if (!pokedex.includes(picked)) pokedex.push(picked);
       updateCoins();
-
-      const rand = Math.random();
-      let selected;
-      if (rand < 0.05) {
-        selected = characters.find(c => c.name === "광금 스폰지밥");
-      } else if (rand < 0.6) {
-        selected = characters.find(c => c.name === "꽝");
-      } else {
-        const commons = characters.filter(c => c.rarity === "common" && c.name !== "꽝");
-        selected = commons[Math.floor(Math.random() * commons.length)];
-      }
-
-      document.getElementById("gachaResult").innerHTML = `
-        <h3>결과: ${selected.name}</h3>
-        <img src="${selected.image}" alt="${selected.name}">
-      `;
-
-      if (selected.name !== "꽝" && !collection.includes(selected.name)) {
-        collection.push(selected.name);
-        saveData();
-      }
+      updatePokedex();
+      localStorage.setItem("pokedex", JSON.stringify(pokedex));
+      saveToServer();
+      document.getElementById("gachaResult").innerText = `축하합니다! ${picked} 획득!`;
     }
 
-    // 도감 업데이트
-    function updateCollection() {
-      const collectionDiv = document.getElementById("collectionList");
-      collectionDiv.innerHTML = "";
-      if (collection.length === 0) {
-        collectionDiv.innerText = "아직 획득한 캐릭터가 없습니다.";
-        return;
-      }
-      collection.forEach(name => {
-        const char = characters.find(c => c.name === name);
-        const img = document.createElement("img");
-        img.src = char.image;
-        img.alt = char.name;
-        img.title = char.name;
-        collectionDiv.appendChild(img);
+    function updatePokedex() {
+      const list = document.getElementById("pokedexList");
+      list.innerHTML = "";
+      pokedex.forEach(char => {
+        const li = document.createElement("li");
+        li.textContent = char;
+        list.appendChild(li);
       });
     }
 
-    // 페이지 로드 시 저장된 데이터 불러오기
-    window.onload = loadData;
-  </script>
+    function orderMenu(item, price) {
+      if (coins < price) return alert("코인이 부족합니다!");
+      coins -= price;
+      updateCoins();
+      alert(`${item} 주문 완료!`);
+    }
 
+    function buyItem(item, price) {
+      if (coins < price) return alert("코인이 부족합니다!");
+      coins -= price;
+      updateCoins();
+      alert(`${item} 구매 완료!`);
+    }
+
+    function tellJoke() {
+      const jokes = [
+        "뚱이: '왜 의자가 하나도 없어?' 스폰지밥: '그건 널 위한 자리야!'",
+        "징징이: '오늘도 일해야 해...' 플랑크톤: '난 또 망했지롱~'",
+        "스폰지밥: '버거 100개요!' / 집게사장: '돈은?' / 스폰지밥: 'ㅋㅋ;;;'"
+      ];
+      const joke = jokes[Math.floor(Math.random() * jokes.length)];
+      document.getElementById("jokeOutput").innerText = joke;
+    }
+
+    function showAdmin() {
+      document.getElementById("adminPopup").classList.remove("hidden");
+    }
+
+    function verifyAdmin() {
+      const pw = document.getElementById("adminPassword").value;
+      if (pw === "krabby123") {
+        document.getElementById("adminPanel").classList.remove("hidden");
+        document.getElementById("adminPopup").classList.add("hidden");
+      } else {
+        alert("비밀번호가 틀렸습니다.");
+      }
+    }
+
+    function saveToServer() {
+      if (!user) return;
+      const ref = database.ref("users/" + user);
+      ref.set({
+        coins: coins,
+        pokedex: pokedex
+      });
+    }
+
+    function loadFromServer() {
+      if (!user) return;
+      const ref = database.ref("users/" + user);
+      ref.once("value").then(snapshot => {
+        const data = snapshot.val();
+        if (data) {
+          coins = data.coins || 0;
+          pokedex = data.pokedex || [];
+          updateCoins();
+          updatePokedex();
+        }
+      });
+    }
+
+    function stopPlankton() {
+      planktonAttacks++;
+      document.getElementById("planktonStatus").innerText = `플랑크톤 ${planktonAttacks}번 막음!`;
+    }
+
+    // 페이지 로드 시 사용자 이름을 확인하고, 없는 경우 입력 받기
+    if (!user) {
+      document.getElementById("namePopup").classList.remove("hidden");
+    } else {
+      document.getElementById("displayName").innerText = user;
+      loadFromServer();
+    }
+  </script>
 </body>
 </html>
