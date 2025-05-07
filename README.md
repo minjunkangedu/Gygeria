@@ -49,25 +49,57 @@
     <button onclick="saveName()">저장</button>
   </div>
 
-  <!-- 관리자 로그인 -->
-  <div id="adminPopup" class="hidden">
-    <p>관리자 비밀번호 입력:</p>
-    <input type="password" id="adminPassword" placeholder="비밀번호"/>
-    <button onclick="verifyAdmin()">입력</button>
-  </div>
-function showAdmin() {
-  document.getElementById("adminPopup").classList.remove("hidden");
-}
+  <!-- 관리자 비밀번호 입력창 -->
+<div id="adminPopup" class="hidden">
+  <p>관리자 비밀번호 입력:</p>
+  <input type="password" id="adminPassword" placeholder="비밀번호"/>
+  <button onclick="verifyAdmin()">입력</button>
+</div>
 
-function verifyAdmin() {
-  const pw = document.getElementById("adminPassword").value;
-  if (pw === "krabby123") {
-    document.getElementById("adminPanel").classList.remove("hidden");
-    document.getElementById("adminPopup").classList.add("hidden");
-  } else {
-    alert("비밀번호가 틀렸습니다.");
+<!-- 관리자 패널 -->
+<section id="adminPanel" class="hidden">
+  <h2>관리자 메뉴</h2>
+  <input id="targetUser" placeholder="유저 이름" />
+  <input type="number" id="coinAmount" placeholder="코인 수">
+  <button onclick="giveCoinsToUser()">코인 지급</button>
+</section>
+
+<script>
+  function showAdmin() {
+    document.getElementById("adminPopup").classList.remove("hidden");
   }
-}
+
+  function verifyAdmin() {
+    const password = document.getElementById("adminPassword").value;
+    if (password === "komq3244") {
+      document.getElementById("adminPopup").classList.add("hidden");
+      document.getElementById("adminPanel").classList.remove("hidden");
+    } else {
+      alert("비밀번호가 틀렸습니다.");
+    }
+  }
+
+  function giveCoinsToUser() {
+    const target = document.getElementById("targetUser").value.trim();
+    const amount = parseInt(document.getElementById("coinAmount").value);
+    if (!target || isNaN(amount)) {
+      alert("유저 이름과 코인 수를 정확히 입력해주세요.");
+      return;
+    }
+    const userRef = firebase.database().ref("users/" + target);
+    userRef.once("value").then(snapshot => {
+      const data = snapshot.val();
+      if (data) {
+        const newCoins = (data.coins || 0) + amount;
+        userRef.update({ coins: newCoins });
+        alert(`${target}님에게 ${amount} 코인을 지급했습니다.`);
+      } else {
+        alert("해당 유저를 찾을 수 없습니다.");
+      }
+    });
+  }
+</script>
+  
   <!-- 각 섹션들 -->
   <section id="menu" class="hidden">
     <h2>오늘의 메뉴</h2>
