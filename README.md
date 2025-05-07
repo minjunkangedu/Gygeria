@@ -3,12 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>크러스티 크랩 게임</title>
+  <title>크러스티 크랩 웹게임</title>
   <style>
     body {
       font-family: 'Arial', sans-serif;
       background-color: #fffde7;
       padding: 20px;
+      text-align: center;
     }
     button {
       margin: 5px;
@@ -28,11 +29,8 @@
       background-color: #fff3cd;
       border: 2px solid #ffa000;
       padding: 20px;
-      margin: 20px 0;
-    }
-    input {
-      padding: 6px;
-      margin-top: 5px;
+      font-weight: bold;
+      color: #d17b00;
     }
   </style>
 </head>
@@ -42,20 +40,18 @@
 
   <!-- 메뉴 버튼 -->
   <button onclick="showSection('menu')">🍔 메뉴</button>
+  <button onclick="showSection('burgerGame')">🍳 햄버거 게임</button>
+  <button onclick="showSection('planktonGame')">⚔️ 플랑크톤의 침략</button>
   <button onclick="showSection('gacha')">🎰 가챠</button>
-  <button onclick="showSection('pokedex')">📘 도감</button>
   <button onclick="showSection('shop')">🛒 상점</button>
+  <button onclick="showSection('pokedex')">📘 도감</button>
   <button onclick="showSection('jokes')">🎭 개그</button>
   <button onclick="showSection('regulars')">🌟 단골</button>
-  <button onclick="showSection('enhancement')">⚒️ 강화</button>
-  <button onclick="showSection('enhanceGacha')">✨ 강화 가챠</button>
-  <button onclick="showSection('planktonGame')">⚔️ 플랑크톤 침략</button>
   <button onclick="showAdmin()">🔑 관리자</button>
 
-  <!-- 이름 입력 팝업 -->
+  <!-- 이름 설정 -->
   <div id="namePopup" class="hidden">
-    <h2>처음 오셨군요!</h2>
-    <p><strong>당신의 이름을 정해주세요!</strong></p>
+    <h2>처음 오셨군요! 이름을 정해주세요:</h2>
     <input id="usernameInput" placeholder="이름 입력"/>
     <button onclick="saveName()">저장</button>
   </div>
@@ -70,154 +66,133 @@
   <!-- 관리자 패널 -->
   <section id="adminPanel" class="hidden">
     <h2>관리자 메뉴</h2>
-    <input id="targetUser" placeholder="유저 이름" />
+    <input id="adminTargetUser" placeholder="지급 대상 이름"/>
     <input type="number" id="coinAmount" placeholder="코인 수">
-    <button onclick="giveCoinsToUser()">코인 지급</button>
+    <button onclick="addCoins()">코인 지급</button>
   </section>
 
-  <!-- 메뉴 섹션 -->
-  <section id="menu" class="hidden">
-    <h2>오늘의 메뉴</h2>
-    <button onclick="orderMenu('크래비 버거', 5)">크래비 버거 (5코인)</button>
-    <button onclick="orderMenu('씨위드 샐러드', 4)">씨위드 샐러드 (4코인)</button>
-    <h3>🌟 특별 메뉴</h3>
-    <button onclick="orderMenu('황금버거', 10)">황금버거 (10코인)</button>
-  </section>
+  <!-- 섹션들 -->
+  <section id="menu" class="hidden"><h2>오늘의 메뉴</h2></section>
+  <section id="gacha" class="hidden"><h2>가챠</h2></section>
+  <section id="shop" class="hidden"><h2>상점</h2></section>
+  <section id="pokedex" class="hidden"><h2>도감</h2></section>
+  <section id="jokes" class="hidden"><h2>개그 코너</h2></section>
+  <section id="regulars" class="hidden"><h2>단골 손님</h2></section>
 
-  <!-- 가챠 섹션 -->
-  <section id="gacha" class="hidden">
-    <h2>스폰지밥 캐릭터 가챠</h2>
-    <button onclick="drawGacha()">가챠 뽑기 (10코인)</button>
-    <div id="gachaResult"></div>
-  </section>
-
-  <!-- 도감 -->
-  <section id="pokedex" class="hidden">
-    <h2>도감</h2>
-    <ul id="pokedexList"></ul>
-  </section>
-
-  <!-- 상점 -->
-  <section id="shop" class="hidden">
-    <h2>상점</h2>
-    <button onclick="buyItem('행운버거', 5)">행운버거 (5코인)</button>
-    <button onclick="buyItem('경험치 스프', 8)">경험치 스프 (8코인)</button>
-  </section>
-
-  <!-- 개그 코너 -->
-  <section id="jokes" class="hidden">
-    <h2>개그 코너</h2>
-    <button onclick="tellJoke()">개그 듣기</button>
-    <p id="jokeOutput"></p>
-  </section>
-
-  <!-- 단골 손님 -->
-  <section id="regulars" class="hidden">
-    <h2>단골 손님</h2>
-    <ul>
-      <li>뚱이</li>
-      <li>징징이</li>
-      <li>플랑크톤</li>
-    </ul>
-  </section>
-
-  <!-- 강화 섹션 -->
-  <section id="enhancement" class="hidden">
-    <h2>강화</h2>
-    <p>현재 강화 레벨: <span id="enhanceLevelDisplay">0</span></p>
-    <p>강화 파워: <span id="enhancePowerDisplay">+0%</span></p>
-    <p>강화석: <span id="enhanceStoneDisplay">0</span></p>
-    <p>집게의 축복: <span id="blessingDisplay">0</span></p>
-    <button onclick="upgradeCharacter()">강화 시도</button>
-  </section>
-
-  <!-- 강화 가챠 -->
-  <section id="enhanceGacha" class="hidden">
-    <h2>강화 가챠</h2>
-    <button onclick="drawEnhanceGacha()">강화 가챠 뽑기 (5코인)</button>
-    <p id="enhanceGachaResult"></p>
+  <!-- 햄버거 미니게임 -->
+  <section id="burgerGame" class="hidden">
+    <h2>스폰지밥이 햄버거를 만들고 있어요!</h2>
+    <p>1초마다 코인이 자동으로 증가합니다.</p>
+    <p>현재 코인: <span id="burgerCoinDisplay">0</span></p>
   </section>
 
   <!-- 플랑크톤 침략 게임 -->
   <section id="planktonGame" class="hidden">
-    <h2>플랑크톤 침략</h2>
-    <p id="planktonStatus">플랑크톤 침략을 막아주세요!</p>
-    <button onclick="stopPlankton()">막기</button>
+    <h2>⚔️ 플랑크톤의 침략!</h2>
+    <p id="planktonMessage">플랑크톤이 오기를 기다리는 중...</p>
+    <button id="stopPlanktonBtn" onclick="stopPlankton()" disabled>막기!</button>
+    <p>막은 횟수: <span id="planktonDefendCount">0</span></p>
   </section>
 
-  <!-- Firebase 및 JavaScript -->
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
   <script>
-    const firebaseConfig = {
-      apiKey: "YOUR_API_KEY",
-      authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-      databaseURL: "https://YOUR_PROJECT_ID.firebaseio.com",
-      projectId: "YOUR_PROJECT_ID",
-      storageBucket: "YOUR_PROJECT_ID.appspot.com",
-      messagingSenderId: "YOUR_SENDER_ID",
-      appId: "YOUR_APP_ID"
-    };
-
-    firebase.initializeApp(firebaseConfig);
-    const database = firebase.database();
-
     let user = localStorage.getItem("userName") || "";
     let coins = parseInt(localStorage.getItem("coins")) || 0;
-    let pokedex = JSON.parse(localStorage.getItem("pokedex")) || [];
-    let enhanceLevel = parseInt(localStorage.getItem("enhanceLevel")) || 0;
-    let enhanceStones = parseInt(localStorage.getItem("enhanceStones")) || 0;
-    let blessings = parseInt(localStorage.getItem("blessings")) || 0;
-    let planktonAttacks = 0;
+    let planktonDefend = parseInt(localStorage.getItem("defendCount")) || 0;
+    let planktonTimeout;
+
+    function saveName() {
+      user = document.getElementById("usernameInput").value;
+      localStorage.setItem("userName", user);
+      document.getElementById("namePopup").classList.add("hidden");
+      document.getElementById("displayName").innerText = user;
+      updateCoins();
+    }
 
     function showSection(id) {
       document.querySelectorAll("section").forEach(sec => sec.classList.add("hidden"));
       document.getElementById(id).classList.remove("hidden");
     }
 
+    function showAdmin() {
+      document.getElementById("adminPopup").classList.remove("hidden");
+    }
+
+    function verifyAdmin() {
+      const pw = document.getElementById("adminPassword").value;
+      if (pw === "komq3244") {
+        document.getElementById("adminPanel").classList.remove("hidden");
+        document.getElementById("adminPopup").classList.add("hidden");
+      } else {
+        alert("비밀번호가 틀렸습니다.");
+      }
+    }
+
+    function addCoins() {
+      const target = document.getElementById("adminTargetUser").value;
+      const amount = parseInt(document.getElementById("coinAmount").value);
+      if (!target || isNaN(amount)) {
+        alert("이름과 코인 수를 정확히 입력하세요.");
+        return;
+      }
+      if (target === user) {
+        coins += amount;
+        updateCoins();
+        alert(`${target}님에게 ${amount} 코인을 지급했습니다.`);
+      } else {
+        alert("현재는 본인만 코인을 받을 수 있습니다.");
+      }
+    }
+
     function updateCoins() {
       document.getElementById("coinDisplay").innerText = coins;
+      document.getElementById("burgerCoinDisplay").innerText = coins;
       localStorage.setItem("coins", coins);
-      saveToServer();
     }
 
-    function saveToServer() {
-      if (!user) return;
-      database.ref("users/" + user).set({
-        coins,
-        pokedex,
-        enhanceLevel,
-        enhanceStones,
-        blessings
-      });
-    }
-
-    function loadFromServer() {
-      if (!user) return;
-      database.ref("users/" + user).once("value").then(snapshot => {
-        const data = snapshot.val();
-        if (data) {
-          coins = data.coins || 0;
-          pokedex = data.pokedex || [];
-          enhanceLevel = data.enhanceLevel || 0;
-          enhanceStones = data.enhanceStones || 0;
-          blessings = data.blessings || 0;
-          updateUI();
-        }
-      });
-    }
-
-    function updateUI() {
+    // 햄버거 게임: 1초마다 코인 증가
+    setInterval(() => {
+      if (document.getElementById("burgerGame").classList.contains("hidden")) return;
+      coins++;
       updateCoins();
-      updatePokedex();
-      document.getElementById("enhanceLevelDisplay").innerText = enhanceLevel;
-      document.getElementById("enhancePowerDisplay").innerText = `+${enhanceLevel}%`;
-      document.getElementById("enhanceStoneDisplay").innerText = enhanceStones;
-      document.getElementById("blessingDisplay").innerText = blessings;
+    }, 1000);
+
+    // 플랑크톤 침공
+    function startPlanktonInvasion() {
+      document.getElementById("planktonMessage").innerText = "플랑크톤이 공격 중! 빨리 막으세요!";
+      document.getElementById("stopPlanktonBtn").disabled = false;
+      planktonTimeout = setTimeout(() => {
+        document.getElementById("planktonMessage").innerText = "막지 못했어요!";
+        document.getElementById("stopPlanktonBtn").disabled = true;
+      }, 3000);
     }
 
-    function saveName() {
-      user = document.getElementById("usernameInput").value.trim();
-      if (!user) return alert("이름을 입력해주세요!");
-      localStorage.setItem("userName", user);
-      document 
+    function stopPlankton() {
+      clearTimeout(planktonTimeout);
+      planktonDefend++;
+      localStorage.setItem("defendCount", planktonDefend);
+      document.getElementById("planktonDefendCount").innerText = planktonDefend;
+      document.getElementById("planktonMessage").innerText = "플랑크톤을 막았어요!";
+      document.getElementById("stopPlanktonBtn").disabled = true;
+      if (planktonDefend % 5 === 0) {
+        coins += 5;
+        updateCoins();
+        alert("5회 방어 성공! 보너스 5코인 지급!");
+      }
+    }
+
+    setInterval(() => {
+      if (document.getElementById("planktonGame").classList.contains("hidden")) return;
+      startPlanktonInvasion();
+    }, 5000);
+
+    // 초기 로드
+    if (!user) {
+      document.getElementById("namePopup").classList.remove("hidden");
+    } else {
+      document.getElementById("displayName").innerText = user;
+      updateCoins();
+      document.getElementById("planktonDefendCount").innerText = planktonDefend;
+    }
+  </script>
+</body>
+</html>
