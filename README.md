@@ -142,17 +142,59 @@
   </section>
 
   <section id="adminPanel" class="hidden">
-    <h2>관리자 메뉴</h2>
-    <input type="number" id="coinAmount" placeholder="코인 수">
-    <button onclick="addCoins()">코인 지급</button>
-  </section>
+      <!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>플랑크톤 침략 게임</title>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: #e0f7fa;
+      padding: 20px;
+      text-align: center;
+    }
+    button {
+      margin: 10px;
+      padding: 12px 20px;
+      background-color: #26c6da;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #0097a7;
+    }
+    #planktonStatus {
+      font-size: 18px;
+      margin-top: 20px;
+      color: #004d40;
+    }
+  </style>
+</head>
+<body>
 
-  <section id="planktonGame" class="hidden">
-    <h2>플랑크톤의 침략!</h2>
-    <button onclick="stopPlankton()">플랑크톤 막기</button>
-    <div id="planktonStatus"></div>
-  </section>
+  <h1>플랑크톤의 침략! 게살버거를 지켜라!</h1>
+  <p>플랑크톤이 침략 중입니다! 아래 버튼을 눌러 막아주세요!</p>
 
+  <button onclick="stopPlankton()">플랑크톤 막기</button>
+
+  <div id="planktonStatus">아직 막은 적이 없습니다.</div>
+
+  <script>
+    let planktonAttacks = 0;
+
+    function stopPlankton() {
+      planktonAttacks++;
+      document.getElementById("planktonStatus").innerText = `플랑크톤 ${planktonAttacks}번 막음!`;
+    }
+  </script>
+
+</body>
+</html>
   <section id="enhancement" class="hidden">
     <h2>캐릭터 강화</h2>
     <p>현재 강화 레벨: <span id="enhanceLevelDisplay">0</span></p>
