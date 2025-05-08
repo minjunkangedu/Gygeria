@@ -1,177 +1,160 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <title>집게리아 게임</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>집게리아 시뮬레이터</title>
   <style>
     body {
       margin: 0;
-      padding: 0;
+      font-family: 'Arial', sans-serif;
       background: url('krustykrab_bg.jpg') no-repeat center center fixed;
       background-size: cover;
-      font-family: 'Arial', sans-serif;
-      color: #fff;
-      text-align: center;
+      overflow: hidden;
     }
-    .container {
+    #menuBar {
+      position: fixed;
+      top: 0;
+      width: 100%;
       background: rgba(0, 0, 0, 0.7);
-      padding: 20px;
-      margin: 40px auto;
-      max-width: 600px;
-      border-radius: 16px;
+      color: white;
+      display: flex;
+      justify-content: space-around;
+      padding: 10px;
+      z-index: 1000;
     }
-    button {
-      padding: 10px 20px;
-      margin: 5px;
-      border: none;
-      background-color: #fcbf49;
-      color: #000;
-      font-weight: bold;
-      border-radius: 10px;
+    .menu-button {
       cursor: pointer;
     }
-    #coinDisplay {
-      font-size: 18px;
-      margin-bottom: 10px;
-      color: #f1fa8c;
+    #gameArea {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
     }
-    #gameSection, #gagSection {
-      display: none;
+    #squidward, #spongebob, .customer {
+      position: absolute;
+      transition: opacity 0.5s ease, transform 0.5s ease;
+    }
+    #squidward {
+      bottom: 50px;
+      left: 40%;
+      width: 100px;
+    }
+    #spongebob {
+      bottom: 100px;
+      right: 40px;
+      width: 100px;
+      animation: cooking 2s infinite alternate;
+    }
+    .customer {
+      bottom: 50px;
+      left: 30%;
+      width: 80px;
+      opacity: 0;
+    }
+    .balloon {
+      position: absolute;
+      top: -50px;
+      left: 20px;
+      background: white;
+      border-radius: 10px;
+      padding: 5px 10px;
+      font-size: 14px;
+      color: black;
+    }
+    @keyframes cooking {
+      0% { transform: translateY(0); }
+      100% { transform: translateY(-5px); }
+    }
+    #coinDisplay {
+      position: fixed;
+      top: 50px;
+      right: 20px;
+      background: gold;
+      color: black;
+      padding: 10px;
+      border-radius: 10px;
+      font-weight: bold;
+      z-index: 1000;
     }
   </style>
 </head>
 <body>
-
-<audio id="bgm" src="bgm.mp3" autoplay loop></audio>
-
-<div class="container">
-  <h1>어서오세요, 집게리아입니다!</h1>
-  <p id="coinDisplay">코인: 0</p>
-
-  <div id="mainMenu">
-    <button onclick="startBurgerGame()">스폰지밥 햄버거 게임</button>
-    <button onclick="startPlanktonGame()">플랑크톤 침략</button>
-    <button onclick="strengthenCharacter()">캐릭터 강화</button>
-    <button onclick="drawEnhancement()">강화 가챠</button>
-    <button onclick="checkAttendance()">출석 보상</button>
-    <button onclick="showGag()">개그 코너</button>
+  <div id="menuBar">
+    <span class="menu-button" onclick="toggleMenu()">메뉴</span>
+    <span class="menu-button" style="display:none" onclick="showFeature('강화')">강화</span>
+    <span class="menu-button" style="display:none" onclick="showFeature('개그')">개그</span>
+    <span class="menu-button" style="display:none" onclick="showFeature('미니게임')">미니게임</span>
+    <span class="menu-button" style="display:none" onclick="showFeature('출석')">출석</span>
+    <span class="menu-button" style="display:none" onclick="showFeature('가챠')">가챠</span>
+    <span class="menu-button" style="display:none" onclick="alert('코인: ' + coin)">코인확인</span>
   </div>
 
-  <div id="gameSection">
-    <p id="gameText">게임 영역</p>
-    <button onclick="endGame()">돌아가기</button>
+  <div id="coinDisplay">코인: 0</div>
+  <div id="gameArea" onclick="collectOrder()">
+    <img id="squidward" src="squidward.png" alt="징징이">
+    <img id="spongebob" src="spongebob.png" alt="스폰지밥">
   </div>
 
-  <div id="gagSection">
-    <p id="gagText">개그가 여기에!</p>
-    <button onclick="endGag()">돌아가기</button>
-  </div>
-</div>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getDatabase, ref, set, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-<script type="module">
-  // Firebase 설정
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getDatabase, ref, get, set, update } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_PROJECT.firebaseapp.com",
+      databaseURL: "https://YOUR_PROJECT.firebaseio.com",
+      projectId: "gygeria-9f319",
+      storageBucket: "gygeria-9f319.appspot.com",
+      messagingSenderId: "570080414698",
+      appId: "YOUR_APP_ID"
+    };
 
-  const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
-    authDomain: "gygeria-9f319.firebaseapp.com",
-    projectId: "gygeria-9f319",
-    storageBucket: "gygeria-9f319.appspot.com",
-    messagingSenderId: "570080414698",
-    appId: "YOUR_APP_ID",
-    databaseURL: "https://gygeria-9f319-default-rtdb.firebaseio.com"
-  };
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
 
-  const app = initializeApp(firebaseConfig);
-  const db = getDatabase(app);
+    let coin = 0;
+    const coinDisplay = document.getElementById('coinDisplay');
 
-  const username = prompt("이름을 입력하세요:");
-  const userRef = ref(db, 'users/' + username);
-
-  let coins = 0;
-
-  get(userRef).then(snapshot => {
-    if (snapshot.exists()) {
-      coins = snapshot.val().coins || 0;
-    } else {
-      set(userRef, { coins: 0 });
+    function updateCoinDisplay() {
+      coinDisplay.textContent = `코인: ${coin}`;
     }
-    updateCoinDisplay();
-  });
 
-  function updateCoinDisplay() {
-    document.getElementById("coinDisplay").innerText = `코인: ${coins}`;
-  }
+    function spawnCustomer() {
+      const customer = document.createElement('img');
+      customer.src = 'customer.png';
+      customer.className = 'customer';
+      const balloon = document.createElement('div');
+      balloon.className = 'balloon';
+      balloon.textContent = '햄버거 하나 주세요!';
+      customer.appendChild(balloon);
+      document.getElementById('gameArea').appendChild(customer);
+      setTimeout(() => customer.style.opacity = 1, 100);
+    }
 
-  function addCoins(amount) {
-    coins += amount;
-    update(userRef, { coins });
-    updateCoinDisplay();
-  }
+    function collectOrder() {
+      const customer = document.querySelector('.customer');
+      if (customer) {
+        customer.style.opacity = 0;
+        setTimeout(() => customer.remove(), 500);
+        coin += 1;
+        updateCoinDisplay();
+      }
+    }
 
-  // 게임 및 기능 실행 예시
-  function startBurgerGame() {
-    showSection("gameSection");
-    document.getElementById("gameText").innerText = "스폰지밥이 햄버거를 만들고 있어요!";
-    addCoins(1);
-  }
+    function toggleMenu() {
+      document.querySelectorAll('#menuBar .menu-button').forEach((btn, i) => {
+        if (i !== 0) btn.style.display = (btn.style.display === 'none') ? 'inline' : 'none';
+      });
+    }
 
-  function startPlanktonGame() {
-    showSection("gameSection");
-    document.getElementById("gameText").innerText = "플랑크톤이 침략 중입니다!";
-    addCoins(2);
-  }
+    function showFeature(name) {
+      alert(`${name} 기능은 곧 추가됩니다!`);
+    }
 
-  function strengthenCharacter() {
-    showSection("gameSection");
-    document.getElementById("gameText").innerText = "캐릭터가 강화되고 있습니다!";
-    addCoins(1);
-  }
+    spawnCustomer();
+    setInterval(spawnCustomer, 15000); // 15초마다 손님 등장
 
-  function drawEnhancement() {
-    showSection("gameSection");
-    const results = ["강화석", "집게의 축복", "실패!"];
-    const result = results[Math.floor(Math.random() * results.length)];
-    document.getElementById("gameText").innerText = `강화 가챠 결과: ${result}`;
-    if (result !== "실패!") addCoins(1);
-  }
-
-  function checkAttendance() {
-    showSection("gameSection");
-    document.getElementById("gameText").innerText = "출석 보상으로 3코인을 획득!";
-    addCoins(3);
-  }
-
-  function showGag() {
-    showSection("gagSection");
-    const gags = [
-      "스폰지밥이 만든 버거는 '치즈' 대신 '해파리젤리'가 들어가요!",
-      "플랑크톤: \"이번엔 꼭 비법 레시피를 훔칠거야!\" → 실패",
-      "징징이: \"오늘도 알바라니… 사장님 월급은요?\"",
-      "뚱이: \"햄버거를 먹으려다 입이 햄이 됐어.\""
-    ];
-    document.getElementById("gagText").innerText = gags[Math.floor(Math.random() * gags.length)];
-  }
-
-  function endGame() {
-    hideSections();
-  }
-
-  function endGag() {
-    hideSections();
-  }
-
-  function hideSections() {
-    document.getElementById("gameSection").style.display = "none";
-    document.getElementById("gagSection").style.display = "none";
-  }
-
-  function showSection(id) {
-    hideSections();
-    document.getElementById(id).style.display = "block";
-  }
-</script>
-
+  </script>
 </body>
 </html>
