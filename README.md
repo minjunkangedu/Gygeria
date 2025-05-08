@@ -1,160 +1,179 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>집게리아 시뮬레이터</title>
+  <meta charset="UTF-8">
+  <title>집게리아 웹 게임</title>
   <style>
+    * {
+      box-sizing: border-box;
+    }
     body {
       margin: 0;
       font-family: 'Arial', sans-serif;
-      background: url('krustykrab_bg.jpg') no-repeat center center fixed;
+      background: url('https://i.ibb.co/qNYBtb1/krusty-krab-bg.jpg') no-repeat center center fixed;
       background-size: cover;
       overflow: hidden;
     }
-    #menuBar {
-      position: fixed;
-      top: 0;
-      width: 100%;
-      background: rgba(0, 0, 0, 0.7);
-      color: white;
-      display: flex;
-      justify-content: space-around;
-      padding: 10px;
-      z-index: 1000;
-    }
-    .menu-button {
-      cursor: pointer;
-    }
-    #gameArea {
-      position: relative;
-      width: 100vw;
-      height: 100vh;
-    }
-    #squidward, #spongebob, .customer {
+
+    #mainMenuBtn {
       position: absolute;
-      transition: opacity 0.5s ease, transform 0.5s ease;
-    }
-    #squidward {
-      bottom: 50px;
-      left: 40%;
-      width: 100px;
-    }
-    #spongebob {
-      bottom: 100px;
-      right: 40px;
-      width: 100px;
-      animation: cooking 2s infinite alternate;
-    }
-    .customer {
-      bottom: 50px;
-      left: 30%;
-      width: 80px;
-      opacity: 0;
-    }
-    .balloon {
-      position: absolute;
-      top: -50px;
+      top: 20px;
       left: 20px;
-      background: white;
-      border-radius: 10px;
-      padding: 5px 10px;
-      font-size: 14px;
-      color: black;
-    }
-    @keyframes cooking {
-      0% { transform: translateY(0); }
-      100% { transform: translateY(-5px); }
-    }
-    #coinDisplay {
-      position: fixed;
-      top: 50px;
-      right: 20px;
-      background: gold;
-      color: black;
-      padding: 10px;
-      border-radius: 10px;
+      background-color: #ffd700;
+      padding: 10px 20px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
       font-weight: bold;
-      z-index: 1000;
+      z-index: 100;
+    }
+
+    #menuPanel {
+      position: absolute;
+      top: 60px;
+      left: 20px;
+      background: rgba(255, 255, 255, 0.95);
+      padding: 12px;
+      border-radius: 10px;
+      display: none;
+      flex-direction: column;
+      gap: 10px;
+      z-index: 99;
+    }
+
+    #menuPanel button {
+      padding: 10px 14px;
+      font-size: 15px;
+      cursor: pointer;
+      border-radius: 6px;
+      background-color: #e0e0e0;
+      border: 1px solid #ccc;
+    }
+
+    #spongebob {
+      position: absolute;
+      left: 5%;
+      bottom: 0;
+      height: 350px;
+      z-index: 10;
+    }
+
+    #squidward {
+      position: absolute;
+      right: 5%;
+      bottom: 0;
+      height: 320px;
+      z-index: 10;
+    }
+
+    #coinDisplay {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: rgba(255, 255, 255, 0.9);
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-weight: bold;
+      z-index: 100;
+    }
+
+    #guestArea {
+      position: absolute;
+      bottom: 100px;
+      right: 120px;
+      height: 200px;
+      width: 150px;
+      z-index: 15;
+    }
+    .guest {
+      position: absolute;
+      bottom: 0;
+      right: 0;
+      height: 180px;
     }
   </style>
 </head>
 <body>
-  <div id="menuBar">
-    <span class="menu-button" onclick="toggleMenu()">메뉴</span>
-    <span class="menu-button" style="display:none" onclick="showFeature('강화')">강화</span>
-    <span class="menu-button" style="display:none" onclick="showFeature('개그')">개그</span>
-    <span class="menu-button" style="display:none" onclick="showFeature('미니게임')">미니게임</span>
-    <span class="menu-button" style="display:none" onclick="showFeature('출석')">출석</span>
-    <span class="menu-button" style="display:none" onclick="showFeature('가챠')">가챠</span>
-    <span class="menu-button" style="display:none" onclick="alert('코인: ' + coin)">코인확인</span>
+
+  <button id="mainMenuBtn">메뉴</button>
+
+  <div id="menuPanel">
+    <button onclick="openEnhance()">강화</button>
+    <button onclick="openGag()">개그</button>
+    <button onclick="openAttendance()">출석</button>
+    <button onclick="checkCoins()">코인 확인</button>
   </div>
 
   <div id="coinDisplay">코인: 0</div>
-  <div id="gameArea" onclick="collectOrder()">
-    <img id="squidward" src="squidward.png" alt="징징이">
-    <img id="spongebob" src="spongebob.png" alt="스폰지밥">
-  </div>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getDatabase, ref, set, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+  <img id="spongebob" src="https://i.ibb.co/9ybHChN/spongebob.png" alt="스폰지밥">
+  <img id="squidward" src="https://i.ibb.co/xMKzMfR/squidward.png" alt="징징이">
 
-    const firebaseConfig = {
-      apiKey: "YOUR_API_KEY",
-      authDomain: "YOUR_PROJECT.firebaseapp.com",
-      databaseURL: "https://YOUR_PROJECT.firebaseio.com",
-      projectId: "gygeria-9f319",
-      storageBucket: "gygeria-9f319.appspot.com",
-      messagingSenderId: "570080414698",
-      appId: "YOUR_APP_ID"
-    };
+  <div id="guestArea"></div>
 
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
+  <script>
+    let coins = 0;
 
-    let coin = 0;
+    const mainMenuBtn = document.getElementById('mainMenuBtn');
+    const menuPanel = document.getElementById('menuPanel');
     const coinDisplay = document.getElementById('coinDisplay');
+    const guestArea = document.getElementById('guestArea');
+
+    mainMenuBtn.addEventListener('click', () => {
+      menuPanel.style.display = (menuPanel.style.display === 'none' || menuPanel.style.display === '') ? 'flex' : 'none';
+    });
+
+    function openEnhance() {
+      alert("[강화] 시스템을 실행합니다. 강화석을 준비하세요!");
+    }
+
+    function openGag() {
+      const gags = [
+        "징징이: 오늘은 일 안 하고 싶다...",
+        "스폰지밥: 주문이 들어왔다고요!", 
+        "플랑크톤: 레시피는 내 것이다!",
+        "게살버거는 사랑입니다."
+      ];
+      alert("[개그 코너] " + gags[Math.floor(Math.random() * gags.length)]);
+    }
+
+    function openAttendance() {
+      alert("[출석] 보상 5코인을 획득했습니다!");
+      coins += 5;
+      updateCoinDisplay();
+    }
+
+    function checkCoins() {
+      alert(`현재 보유 코인: ${coins}`);
+    }
 
     function updateCoinDisplay() {
-      coinDisplay.textContent = `코인: ${coin}`;
+      coinDisplay.textContent = `코인: ${coins}`;
     }
 
-    function spawnCustomer() {
-      const customer = document.createElement('img');
-      customer.src = 'customer.png';
-      customer.className = 'customer';
-      const balloon = document.createElement('div');
-      balloon.className = 'balloon';
-      balloon.textContent = '햄버거 하나 주세요!';
-      customer.appendChild(balloon);
-      document.getElementById('gameArea').appendChild(customer);
-      setTimeout(() => customer.style.opacity = 1, 100);
+    // 손님 등장 시스템
+    function spawnGuest() {
+      const guest = document.createElement('img');
+      guest.src = 'https://i.ibb.co/YQ9nH3n/fish-customer.png';
+      guest.classList.add('guest');
+      guestArea.innerHTML = '';
+      guestArea.appendChild(guest);
     }
 
-    function collectOrder() {
-      const customer = document.querySelector('.customer');
-      if (customer) {
-        customer.style.opacity = 0;
-        setTimeout(() => customer.remove(), 500);
-        coin += 1;
-        updateCoinDisplay();
+    // 아무 곳이나 클릭 시 손님 처리
+    document.body.addEventListener('click', (e) => {
+      if (!menuPanel.contains(e.target) && e.target.id !== 'mainMenuBtn') {
+        if (guestArea.children.length > 0) {
+          coins++;
+          updateCoinDisplay();
+          guestArea.innerHTML = '';
+        }
       }
-    }
+    });
 
-    function toggleMenu() {
-      document.querySelectorAll('#menuBar .menu-button').forEach((btn, i) => {
-        if (i !== 0) btn.style.display = (btn.style.display === 'none') ? 'inline' : 'none';
-      });
-    }
-
-    function showFeature(name) {
-      alert(`${name} 기능은 곧 추가됩니다!`);
-    }
-
-    spawnCustomer();
-    setInterval(spawnCustomer, 15000); // 15초마다 손님 등장
-
+    // 일정 시간마다 손님 등장
+    setInterval(spawnGuest, 10000); // 10초마다 손님 등장
   </script>
 </body>
 </html>
