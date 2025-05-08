@@ -29,7 +29,7 @@
     nav button {
       margin: 0.5rem;
       padding: 0.75rem 1.5rem;
-      font-size: 1rem;
+      font-size: 1.2rem;
       border: none;
       border-radius: 10px;
       background-color: #ffcc00;
@@ -41,11 +41,11 @@
     }
     #mainScene {
       display: flex;
-      justify-content: center;
+      justify-content: space-around;
       align-items: flex-end;
       position: relative;
       width: 100vw;
-      height: 60vh;
+      height: 70vh;
       padding-bottom: 2rem;
     }
     .character {
@@ -53,17 +53,22 @@
       margin: 0 3rem;
     }
     #squidward {
-      width: 180px;
+      width: 300px;
     }
     #spongebob {
-      width: 180px;
+      width: 300px;
+      animation: float 2s infinite ease-in-out;
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
     }
     .guest {
       position: absolute;
       bottom: 0;
       left: 50%;
       transform: translateX(-50%);
-      width: 150px;
+      width: 220px;
       transition: all 1s ease-in-out;
     }
     .coin-display {
@@ -82,79 +87,90 @@
       left: 50%;
       transform: translate(-50%, -50%);
       background: white;
-      border: 2px solid #333;
       padding: 2rem;
-      z-index: 100;
+      border-radius: 15px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.5);
       display: none;
+      z-index: 1000;
     }
-    .popup h2 { margin-top: 0; }
-    .overlay {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background: rgba(0,0,0,0.5);
-      z-index: 90;
-      display: none;
+    .popup h2 {
+      margin-top: 0;
+    }
+    .popup button {
+      margin-top: 1rem;
+      padding: 0.5rem 1rem;
+      font-size: 1rem;
     }
   </style>
 </head>
 <body>
   <header>집게리아</header>
   <nav>
-    <button onclick="showPopup('burgerGame')">버거 미니게임</button>
-    <button onclick="showPopup('planktonGame')">플랑크톤 침략</button>
-    <button onclick="showPopup('enhancement')">강화</button>
-    <button onclick="showPopup('attendance')">출석 보상</button>
-    <button onclick="showPopup('gag')">개그 코너</button>
-    <button onclick="showPopup('skill')">캐릭터 스킬</button>
+    <button onclick="openGame('burger')">버거 미니게임</button>
+    <button onclick="openGame('plankton')">플랑크톤 침략</button>
+    <button onclick="openGame('enhancement')">강화</button>
+    <button onclick="openGame('attendance')">출석 보상</button>
+    <button onclick="openGame('gag')">개그 코너</button>
+    <button onclick="openGame('skill')">캐릭터 스킬</button>
   </nav>
 
   <div id="mainScene" onclick="handleGuestClick()">
-    <img id="squidward" class="character" src="squidward.png" loading="lazy" alt="징징이">
-    <img id="spongebob" class="character" src="spongebob.png" loading="lazy" alt="스폰지밥">
-    <img id="guest" class="guest" src="guest.png" loading="lazy" style="display:none" alt="손님">
+    <img id="squidward" class="character" src="squidward.png" alt="징징이">
+    <img id="spongebob" class="character" src="spongebob.png" alt="스폰지밥">
+    <img id="guest" class="guest" src="guest.png" style="display:none" alt="손님">
     <div class="coin-display">코인: <span id="coinCount">0</span></div>
+  </div>
+
+  <div id="popup" class="popup">
+    <h2 id="popupTitle">모드 이름</h2>
+    <p id="popupContent">여기에 해당 모드 설명이 들어갑니다.</p>
+    <button onclick="closePopup()">닫기</button>
   </div>
 
   <audio id="bgm" src="bgm.mp3" autoplay loop></audio>
   <audio id="effect" src="effect.mp3"></audio>
 
-  <!-- 팝업들 -->
-  <div class="overlay" id="overlay" onclick="hidePopup()"></div>
-  <div class="popup" id="burgerGame">
-    <h2>버거 미니게임</h2>
-    <p>재료를 순서대로 클릭하세요! (추가 구현 가능)</p>
-    <button onclick="hidePopup()">닫기</button>
-  </div>
-  <div class="popup" id="planktonGame">
-    <h2>플랑크톤 침략</h2>
-    <p>플랑크톤을 막아라! (추가 구현 가능)</p>
-    <button onclick="hidePopup()">닫기</button>
-  </div>
-  <div class="popup" id="enhancement">
-    <h2>강화</h2>
-    <p>캐릭터 강화 진행! (추가 구현 가능)</p>
-    <button onclick="hidePopup()">닫기</button>
-  </div>
-  <div class="popup" id="attendance">
-    <h2>출석 보상</h2>
-    <p>하루 1회 보상 획득! (추가 구현 가능)</p>
-    <button onclick="hidePopup()">닫기</button>
-  </div>
-  <div class="popup" id="gag">
-    <h2>개그 코너</h2>
-    <p>웃긴 대사 or 장면 표시! (추가 구현 가능)</p>
-    <button onclick="hidePopup()">닫기</button>
-  </div>
-  <div class="popup" id="skill">
-    <h2>캐릭터 스킬</h2>
-    <p>스킬 목록 및 효과 설명 (추가 구현 가능)</p>
-    <button onclick="hidePopup()">닫기</button>
-  </div>
-
   <script>
     let coins = 0;
     let guestVisible = false;
+
+    function openGame(type) {
+      const popup = document.getElementById('popup');
+      const title = document.getElementById('popupTitle');
+      const content = document.getElementById('popupContent');
+
+      switch(type) {
+        case 'burger':
+          title.textContent = '버거 미니게임';
+          content.textContent = '시간 내에 정확한 순서로 재료를 클릭해 햄버거를 완성하세요!';
+          break;
+        case 'plankton':
+          title.textContent = '플랑크톤 침략';
+          content.textContent = '플랑크톤을 클릭해서 침략을 막아주세요!';
+          break;
+        case 'enhancement':
+          title.textContent = '캐릭터 강화';
+          content.textContent = '강화석을 사용해 캐릭터 능력치를 상승시켜 보세요.';
+          break;
+        case 'attendance':
+          title.textContent = '출석 보상';
+          content.textContent = '매일 접속 시 보상을 획득할 수 있어요!';
+          break;
+        case 'gag':
+          title.textContent = '개그 코너';
+          content.textContent = '집게사장의 유쾌한 개그를 들어보세요!';
+          break;
+        case 'skill':
+          title.textContent = '캐릭터 스킬';
+          content.textContent = '강화에 따라 다양한 스킬이 해금됩니다.';
+          break;
+      }
+      popup.style.display = 'block';
+    }
+
+    function closePopup() {
+      document.getElementById('popup').style.display = 'none';
+    }
 
     function handleGuestClick() {
       if (guestVisible) {
@@ -175,17 +191,6 @@
 
     function spawnGuestWithDelay() {
       setTimeout(spawnGuest, 3000);
-    }
-
-    function showPopup(id) {
-      document.getElementById('overlay').style.display = 'block';
-      document.getElementById(id).style.display = 'block';
-    }
-
-    function hidePopup() {
-      document.getElementById('overlay').style.display = 'none';
-      const popups = document.querySelectorAll('.popup');
-      popups.forEach(p => p.style.display = 'none');
     }
 
     spawnGuestWithDelay();
