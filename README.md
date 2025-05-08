@@ -2,170 +2,120 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Krusty Krab Web Game</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gygeria: Krusty Krab Web Game</title>
   <style>
     body {
       margin: 0;
-      font-family: 'Arial', sans-serif;
+      font-family: 'Comic Sans MS', cursive, sans-serif;
       background: url('krustykrab_bg.jpg') no-repeat center center fixed;
       background-size: cover;
-      color: #fff;
-      text-align: center;
+      color: white;
     }
     .container {
-      background-color: rgba(0, 0, 0, 0.6);
-      margin: 50px auto;
+      max-width: 960px;
+      margin: auto;
       padding: 20px;
-      border-radius: 10px;
-      width: 90%;
-      max-width: 600px;
+      background-color: rgba(0, 0, 0, 0.7);
+      border-radius: 20px;
     }
-    input, button {
-      padding: 10px;
-      margin: 5px;
-      border: none;
-      border-radius: 5px;
+    h1 {
+      text-align: center;
+    }
+    .section {
+      margin-top: 30px;
     }
     button {
-      background-color: #f1c40f;
+      margin: 5px;
+      padding: 10px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      background-color: #fbbd08;
+      color: black;
       cursor: pointer;
     }
     button:hover {
-      background-color: #d4ac0d;
-    }
-    #gameArea {
-      margin-top: 20px;
-    }
-    .hidden {
-      display: none;
+      background-color: #f2711c;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>🍔 Krusty Krab Web Game 🍟</h1>
-    <div id="loginArea">
-      <input type="text" id="username" placeholder="이름을 입력하세요" />
-      <button onclick="login()">시작하기</button>
+    <h1>Gygeria: Krusty Krab Web Game</h1>
+    <div id="game">
+      <!-- 메인 게임 메뉴 및 상태 출력 -->
     </div>
-    <div id="mainMenu" class="hidden">
-      <p>환영합니다, <span id="displayName"></span>님!</p>
-      <p>보유 코인: <span id="coinCount">0</span></p>
-      <button onclick="startBurgerGame()">버거 만들기 게임</button>
-      <button onclick="startPlanktonGame()">플랑크톤 침공 방어</button>
-      <button onclick="openGacha()">가챠 돌리기</button>
-      <button onclick="dailyCheckIn()">출석 체크</button>
-      <button onclick="adminPanel()">관리자 패널</button>
-      <div id="gameArea"></div>
+    <div class="section">
+      <button onclick="playBurgerGame()">스폰지밥 햄버거 미니게임</button>
+      <button onclick="playPlanktonGame()">플랑크톤 침략 게임</button>
+      <button onclick="openEnhanceGacha()">강화 가챠</button>
+      <button onclick="runIdleMode()">잠수 채널</button>
+      <button onclick="viewAchievements()">업적 보기</button>
+      <button onclick="showLoyalCustomers()">단골 손님</button>
+      <button onclick="useCharacterSkill()">캐릭터 고유 스킬</button>
     </div>
   </div>
 
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+  <audio id="bgm" loop autoplay>
+    <source src="bgm.mp3" type="audio/mpeg" />
+  </audio>
+  <audio id="effect">
+    <source src="effect.mp3" type="audio/mpeg" />
+  </audio>
 
-  <script>
-    // Firebase 설정
+  <script type="module">
+    // Firebase 연동
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getDatabase, ref, set, get, child, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
     const firebaseConfig = {
-      apiKey: "YOUR_API_KEY",
-      authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-      projectId: "YOUR_PROJECT_ID",
-      storageBucket: "YOUR_PROJECT_ID.appspot.com",
-      messagingSenderId: "YOUR_SENDER_ID",
-      appId: "YOUR_APP_ID"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-
-    let currentUser = null;
-    let userData = {
-      coins: 0,
-      lastCheckIn: null
+      apiKey: "YOUR_API_KEY_HERE",
+      authDomain: "gygeria-9f319.firebaseapp.com",
+      databaseURL: "https://gygeria-9f319-default-rtdb.firebaseio.com",
+      projectId: "gygeria-9f319",
+      storageBucket: "gygeria-9f319.appspot.com",
+      messagingSenderId: "570080414698",
+      appId: "YOUR_APP_ID_HERE"
     };
 
-    function login() {
-      const name = document.getElementById('username').value.trim();
-      if (name === "") {
-        alert("이름을 입력해주세요.");
-        return;
-      }
-      currentUser = name;
-      document.getElementById('displayName').textContent = currentUser;
-      document.getElementById('loginArea').classList.add('hidden');
-      document.getElementById('mainMenu').classList.remove('hidden');
-      loadUserData();
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    // 게임 관련 함수들 간략 예시 (실제 내용은 기능에 맞게 세부 구현 필요)
+    function playBurgerGame() {
+      alert("[스폰지밥 햄버거 게임] 시간 내에 재료를 조합하세요!");
+      // 게임 로직 구현 필요
     }
 
-    function loadUserData() {
-      db.ref('users/' + currentUser).once('value').then(snapshot => {
-        if (snapshot.exists()) {
-          userData = snapshot.val();
-        } else {
-          db.ref('users/' + currentUser).set(userData);
-        }
-        updateUI();
-      });
+    function playPlanktonGame() {
+      alert("[플랑크톤 침략 게임] 플랑크톤을 막아주세요!");
+      // AI 패턴 기반 방어 구현 필요
     }
 
-    function updateUI() {
-      document.getElementById('coinCount').textContent = userData.coins;
+    function openEnhanceGacha() {
+      alert("[강화 가챠] 강화석 혹은 축복 아이템 획득!");
+      // 강화 시스템, 확률, 실패 등 적용 필요
     }
 
-    function startBurgerGame() {
-      alert("버거 만들기 게임을 시작합니다! (기능 구현 예정)");
-      // 게임 로직 구현
-      userData.coins += 1;
-      saveUserData();
+    function runIdleMode() {
+      alert("[잠수 채널] 황금 스폰지밥이 코인을 생산합니다 (1시간마다 1코인)");
+      // 타이머 기반 수동 코인 지급 구현
     }
 
-    function startPlanktonGame() {
-      alert("플랑크톤 침공 방어 게임을 시작합니다! (기능 구현 예정)");
-      // 게임 로직 구현
-      const reward = Math.random() < 0.5 ? 3 : 0;
-      userData.coins += reward;
-      saveUserData();
+    function viewAchievements() {
+      alert("[업적 시스템] 업적을 달성해보세요!");
+      // 업적 조건 확인 및 보상 시스템 필요
     }
 
-    function openGacha() {
-      alert("가챠를 돌립니다! (기능 구현 예정)");
-      // 가챠 로직 구현
-      userData.coins -= 5;
-      saveUserData();
+    function showLoyalCustomers() {
+      alert("[단골 손님] 특별한 손님 등장! 코인을 보상으로 획득하세요.");
+      // 등장 확률 및 보상 처리
     }
 
-    function dailyCheckIn() {
-      const today = new Date().toLocaleDateString();
-      if (userData.lastCheckIn === today) {
-        alert("오늘 이미 출석하셨습니다.");
-        return;
-      }
-      userData.coins += 10;
-      userData.lastCheckIn = today;
-      saveUserData();
-      alert("출석 체크 완료! 10코인을 받았습니다.");
-    }
-
-    function adminPanel() {
-      const password = prompt("관리자 비밀번호를 입력하세요:");
-      if (password === "komq3244") {
-        const targetUser = prompt("코인을 지급할 유저 이름을 입력하세요:");
-        const amount = parseInt(prompt("지급할 코인 수를 입력하세요:"), 10);
-        if (targetUser && !isNaN(amount)) {
-          db.ref('users/' + targetUser + '/coins').once('value').then(snapshot => {
-            let currentCoins = snapshot.val() || 0;
-            db.ref('users/' + targetUser).update({ coins: currentCoins + amount });
-            alert(`${targetUser}님에게 ${amount}코인을 지급했습니다.`);
-          });
-        }
-      } else {
-        alert("비밀번호가 틀렸습니다.");
-      }
-    }
-
-    function saveUserData() {
-      db.ref('users/' + currentUser).set(userData);
-      updateUI();
+    function useCharacterSkill() {
+      alert("[캐릭터 스킬] 캐릭터 고유 능력을 발동합니다!");
+      // 캐릭터별 스킬 효과 발동 구현 필요
     }
   </script>
 </body>
