@@ -1,67 +1,57 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>크러스티 크랩 게임</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Krusty Krab Web Game</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap">
   <style>
     body {
       margin: 0;
-      font-family: 'Arial', sans-serif;
-      background: url('krustykrab_bg.jpg') no-repeat center center fixed;
+      font-family: 'Press Start 2P', cursive;
+      background: url('images/krustykrab_bg.jpg') no-repeat center center fixed;
       background-size: cover;
       color: #fff;
       text-align: center;
     }
-    header {
-      padding: 1em;
-      background-color: rgba(0,0,0,0.7);
+    .container {
+      padding: 20px;
+      background-color: rgba(0,0,0,0.6);
+      max-width: 960px;
+      margin: 0 auto;
+      border-radius: 16px;
     }
-    .menu {
-      display: flex;
-      justify-content: center;
-      gap: 1em;
-      margin: 1em;
-    }
-    .menu button {
-      padding: 1em;
-      font-size: 1.2em;
-      background-color: #f9a602;
+    button {
+      font-family: inherit;
+      background: #ffd700;
       border: none;
-      border-radius: 10px;
+      padding: 10px 20px;
+      margin: 10px;
       cursor: pointer;
-      transition: transform 0.2s;
+      border-radius: 8px;
+      box-shadow: 0 4px #b8860b;
     }
-    .menu button:hover {
-      transform: scale(1.1);
-    }
-    #gameArea {
-      padding: 2em;
-      background-color: rgba(0,0,0,0.5);
-      margin: 1em;
-      border-radius: 20px;
+    input, select {
+      padding: 8px;
+      margin: 10px;
+      border-radius: 8px;
     }
   </style>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
 </head>
 <body>
-  <header>
-    <h1>크러스티 크랩: 궁극의 경영 게임</h1>
-  </header>
-  <div class="menu">
-    <button onclick="startPlanktonInvasion()">플랑크톤 침략</button>
-    <button onclick="startBurgerGame()">스폰지밥 햄버거 미니게임</button>
-    <button onclick="openEnhancement()">캐릭터 강화</button>
-    <button onclick="adminPanel()">관리자 모드</button>
-  </div>
-  <div id="gameArea">
-    <p>게임을 시작하려면 메뉴를 선택하세요.</p>
+  <div class="container">
+    <h1>크러스티 크랩 게임</h1>
+    <p>이름: <input type="text" id="username"></p>
+    <p><button onclick="startGame()">게임 시작</button></p>
+    <p><button onclick="customizeStore()">가게 이름 설정</button></p>
+    <p><button onclick="pvpBattle()">PVP 배틀</button></p>
+    <p><button onclick="viewRankings()">랭킹 보기</button></p>
+    <div id="gameArea"></div>
+    <audio id="bgm" loop autoplay src="sounds/bgm.mp3"></audio>
   </div>
 
-  <audio id="bgm" src="bgm.mp3" autoplay loop></audio>
-  <audio id="effect" src="effect.mp3"></audio>
-
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
   <script>
     const firebaseConfig = {
       apiKey: "YOUR_API_KEY",
@@ -75,35 +65,39 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    function startPlanktonInvasion() {
-      document.getElementById('gameArea').innerHTML = `<h2>플랑크톤 침략 게임</h2><p>게임 내용 구성 중...</p>`;
+    const bgm = document.getElementById('bgm');
+    const usernameInput = document.getElementById('username');
+
+    function startGame() {
+      const username = usernameInput.value.trim();
+      if (!username) return alert("이름을 입력해주세요.");
+      document.getElementById('gameArea').innerHTML = `<p>${username}님, 햄버거를 만들어주세요!</p>`;
+      playEffect();
     }
 
-    function startBurgerGame() {
-      document.getElementById('gameArea').innerHTML = `<h2>스폰지밥 햄버거 미니게임</h2><p>게임 내용 구성 중...</p>`;
+    function customizeStore() {
+      const name = prompt("가게 이름을 입력하세요:");
+      if (name) alert(`가게 이름이 '${name}'(으)로 설정되었습니다.`);
     }
 
-    function openEnhancement() {
-      document.getElementById('gameArea').innerHTML = `<h2>캐릭터 강화</h2><p>강화 시스템 구성 중...</p>`;
+    function pvpBattle() {
+      alert("PVP 배틀 모드 준비중입니다. 실제 게임 로직은 여기에 추가됩니다.");
     }
 
-    function adminPanel() {
-      document.getElementById('gameArea').innerHTML = `
-        <h2>관리자 패널</h2>
-        <input id="adminName" placeholder="유저 이름" />
-        <input id="adminCoins" placeholder="코인 수" type="number" />
-        <button onclick="grantCoins()">지급</button>
-      `;
+    function viewRankings() {
+      db.ref('users').orderByChild('score').limitToLast(5).once('value', snapshot => {
+        const scores = [];
+        snapshot.forEach(child => {
+          scores.push({ name: child.key, score: child.val().score });
+        });
+        scores.reverse();
+        alert("Top 5 유저:\n" + scores.map(s => `${s.name}: ${s.score}`).join("\n"));
+      });
     }
 
-    function grantCoins() {
-      const name = document.getElementById('adminName').value;
-      const coins = parseInt(document.getElementById('adminCoins').value);
-      if (name && !isNaN(coins)) {
-        db.ref('users/' + name).update({ coins: coins });
-        alert("지급 완료!");
-        document.getElementById("effect").play();
-      }
+    function playEffect() {
+      const audio = new Audio('sounds/effect.mp3');
+      audio.play();
     }
   </script>
 </body>
