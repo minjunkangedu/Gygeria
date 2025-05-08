@@ -2,225 +2,285 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <title>크러스티 크랩 웹 게임</title>
+  <title>집게리아 고퀄 웹게임</title>
   <style>
     body {
-      margin: 0;
-      font-family: 'Arial', sans-serif;
-      background: url('https://i.imgur.com/3TzK4d3.jpg') no-repeat center center fixed;
+      background-image: url('https://i.imgur.com/oU5FbdA.jpg');
       background-size: cover;
+      background-attachment: fixed;
+      font-family: 'Arial', sans-serif;
       color: #fff;
-    }
-
-    .container {
+      text-align: center;
       padding: 20px;
-      background: rgba(0, 0, 0, 0.6);
-      margin: 20px auto;
-      max-width: 800px;
-      border-radius: 12px;
-      box-shadow: 0 0 12px #000;
     }
-
-    h1 {
-      text-align: center;
-      color: #ffcc00;
-      font-family: 'Comic Sans MS', cursive;
-    }
-
-    .menu-buttons {
-      text-align: center;
-      margin-bottom: 20px;
-    }
-
-    .menu-buttons button {
+    #main-menu button, #game-section button {
       padding: 10px 20px;
       margin: 5px;
+      font-size: 16px;
       background-color: #ffcc00;
       border: none;
-      border-radius: 8px;
-      font-size: 16px;
       cursor: pointer;
-      transition: 0.2s;
     }
-
-    .menu-buttons button:hover {
-      background-color: #ffaa00;
+    #log {
+      background: rgba(0,0,0,0.6);
+      height: 150px;
+      overflow-y: auto;
+      margin-top: 20px;
+      padding: 10px;
     }
-
-    .game-section {
+    #admin-panel {
+      background: rgba(0,0,0,0.4);
+      padding: 10px;
       display: none;
-    }
-
-    .game-section.active {
-      display: block;
-    }
-
-    #plankton {
-      width: 50px;
-      height: 50px;
-      background: url('https://i.imgur.com/bCzqW9g.png') no-repeat center/contain;
-      position: absolute;
-      cursor: pointer;
-      display: none;
-    }
-
-    .info-bar {
-      text-align: center;
       margin-top: 10px;
-      font-size: 18px;
-      color: #00ffcc;
-    }
-
-    .floating-button {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      background: #ff3399;
-      color: white;
-      padding: 12px 18px;
-      border: none;
-      border-radius: 50px;
-      cursor: pointer;
-      font-weight: bold;
-      box-shadow: 0 0 10px #ff3399;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>🍔 크러스티 크랩 웹 게임</h1>
-    <div class="menu-buttons">
-      <button onclick="showSection('plankton')">플랑크톤 침략</button>
-      <button onclick="showSection('burger')">햄버거 만들기</button>
-      <button onclick="showJoke()">개그 보기</button>
-      <button onclick="showRegulars()">단골 손님</button>
-    </div>
+  <h1>집게리아 고퀄 게임</h1>
 
-    <div class="info-bar" id="dailyMenu"></div>
-
-    <!-- 플랑크톤 침략 -->
-    <div id="plankton" class="game-section">
-      <p>플랑크톤을 클릭해서 막으세요!</p>
-      <div id="planktonTarget"></div>
-      <div>점수: <span id="planktonScore">0</span></div>
-    </div>
-
-    <!-- 햄버거 미니게임 -->
-    <div id="burger" class="game-section">
-      <p>제한 시간 안에 재료를 조합해서 햄버거를 완성하세요!</p>
-      <button onclick="makeBurger()">🍔 햄버거 만들기</button>
-      <div id="burgerResult"></div>
-    </div>
-
-    <!-- 개그 -->
-    <div id="jokeSection" class="game-section">
-      <p id="jokeText"></p>
-    </div>
-
-    <!-- 단골 -->
-    <div id="regularsSection" class="game-section">
-      <ul id="regularList"></ul>
-    </div>
+  <div id="name-section">
+    <p>이름을 입력하세요:</p>
+    <input id="player-name" placeholder="예: 스폰지밥" />
+    <button onclick="startGame()">시작</button>
   </div>
 
-  <div id="plankton" onclick="hitPlankton()"></div>
+  <div id="main-menu" style="display:none;">
+    <h2 id="welcome-msg"></h2>
+    <button onclick="startBurgerGame()">햄버거 조합</button>
+    <button onclick="startInvasionGame()">플랑크톤 침공</button>
+    <button onclick="openMenuShop()">오늘의 메뉴</button>
+    <button onclick="showFavorites()">단골 손님</button>
+    <button onclick="showGags()">개그 코너</button>
+    <button onclick="claimAttendance()">출석 보상</button>
+    <button onclick="checkAchievements()">업적 확인</button>
+    <button onclick="openEnhance()">강화</button>
+    <button onclick="openIdle()">잠수 채널</button>
+    <button onclick="toggleAdmin()">관리자</button>
+  </div>
 
-  <button class="floating-button" onclick="showRandomMenu()">📋 오늘의 메뉴</button>
+  <div id="game-section" style="display:none;"></div>
+
+  <div id="log"></div>
+
+  <div id="admin-panel">
+    <h3>관리자 패널</h3>
+    <input id="admin-user" placeholder="유저 이름" />
+    <input id="admin-coins" placeholder="코인 수" type="number" />
+    <button onclick="giveCoins()">코인 지급</button>
+  </div>
 
   <script>
-    // 날짜별 오늘의 메뉴
-    const dailyMenus = [
-      "치즈버거 + 감자튀김",
-      "크래비 패티 스페셜",
-      "해파리 젤리 버거",
-      "플랑크톤 스튜",
-      "스폰지 소다와 세트",
-      "뚱이 버거 콤보",
-      "집게사장 럭셔리 세트"
+    let playerName = "";
+    let coins = 0;
+    let burgerCombo = [];
+    let attendanceClaimed = false;
+    let planktonHP = 5;
+
+    let character = {
+      level: 0,
+      attack: 10,
+      defense: 5,
+      stones: 0
+    };
+
+    const gags = [
+      "문을 밀어야 하는데 당겼어요!",
+      "오늘도 해파리에 쏘였어요!",
+      "스폰지밥이 버거에 치약을 넣었대요!",
+      "징징이는 오늘도 불평 중!",
     ];
 
-    function showRandomMenu() {
-      const today = new Date().getDay();
-      document.getElementById('dailyMenu').innerText = "오늘의 메뉴 🍽️: " + dailyMenus[today];
+    function startGame() {
+      const input = document.getElementById("player-name").value.trim();
+      if (input === '') return alert("이름을 입력하세요!");
+      playerName = input;
+      document.getElementById("name-section").style.display = "none";
+      document.getElementById("main-menu").style.display = "block";
+      document.getElementById("welcome-msg").innerText = `어서오세요, ${playerName}님!`;
+      log(`${playerName}님이 입장했습니다.`);
     }
 
-    showRandomMenu();
-
-    function showSection(id) {
-      const sections = document.querySelectorAll('.game-section');
-      sections.forEach(s => s.classList.remove('active'));
-      if (id === 'plankton') startPlanktonGame();
-      if (id === 'burger') document.getElementById('burger').classList.add('active');
+    function log(msg) {
+      const logDiv = document.getElementById("log");
+      const p = document.createElement("p");
+      p.innerText = msg;
+      logDiv.appendChild(p);
+      logDiv.scrollTop = logDiv.scrollHeight;
     }
 
-    // 플랑크톤 게임
-    let planktonScore = 0;
-
-    function startPlanktonGame() {
-      document.getElementById('plankton').classList.add('active');
-      const plankton = document.getElementById('plankton');
-      plankton.style.display = 'block';
-      movePlankton();
+    function toggleAdmin() {
+      const password = prompt("관리자 비밀번호를 입력하세요:");
+      if (password === "komq3244") {
+        document.getElementById("admin-panel").style.display = "block";
+        log("관리자 패널 열림");
+      } else {
+        alert("비밀번호가 틀렸습니다.");
+      }
     }
 
-    function movePlankton() {
-      const plankton = document.getElementById('plankton');
-      const x = Math.random() * (window.innerWidth - 50);
-      const y = Math.random() * (window.innerHeight - 50);
-      plankton.style.left = `${x}px`;
-      plankton.style.top = `${y}px`;
+    function giveCoins() {
+      const user = document.getElementById("admin-user").value.trim();
+      const amount = parseInt(document.getElementById("admin-coins").value);
+      if (!user || isNaN(amount)) return alert("입력 오류");
+      coins += amount;
+      log(`${user}에게 ${amount} 코인을 지급했습니다. 현재 보유: ${coins}`);
     }
 
-    function hitPlankton() {
-      planktonScore++;
-      document.getElementById('planktonScore').innerText = planktonScore;
-      movePlankton();
-    }
-
-    // 햄버거 만들기
-    function makeBurger() {
-      const ingredients = ["패티", "양상추", "치즈", "피클", "토마토", "빵"];
-      const result = ingredients.sort(() => Math.random() - 0.5).slice(0, 3);
-      document.getElementById("burgerResult").innerText = "🧾 조합된 재료: " + result.join(", ");
-    }
-
-    // 개그 기능
-    const jokes = [
-      "스폰지밥: '이 햄버거 이름은 뭔가요?' 집게사장: '너 월급 깎임 버거다!'",
-      "징징이: '오늘은 일 안 할래요.' 집게사장: '좋아, 내일부터도 안 해도 돼. 해고야!'",
-      "플랑크톤: '이번엔 진짜 레시피 훔칠 거야!' -> 5초 후 체포됨.",
-      "스폰지밥: '이게 바로 웃픈 현실 버거야.'",
-      "뚱이: '나는 생각하지 않아. 그래서 행복해.'"
-    ];
-
-    function showJoke() {
-      const joke = jokes[Math.floor(Math.random() * jokes.length)];
-      const section = document.getElementById("jokeSection");
-      document.querySelectorAll('.game-section').forEach(s => s.classList.remove('active'));
-      section.classList.add("active");
-      document.getElementById("jokeText").innerText = "🤣 " + joke;
-    }
-
-    // 단골 손님
-    const regulars = [
-      "뚱이 - 단골 1호",
-      "버블버디 - 단골 2호",
-      "레이디 피쉬 - 단골 3호",
-      "만수르 - 럭셔리 VIP",
-      "노인 물고기 - 매일 오는 손님"
-    ];
-
-    function showRegulars() {
-      const section = document.getElementById("regularsSection");
-      document.querySelectorAll('.game-section').forEach(s => s.classList.remove('active'));
-      section.classList.add("active");
-      const list = document.getElementById("regularList");
-      list.innerHTML = '';
-      regulars.forEach(name => {
-        const li = document.createElement("li");
-        li.innerText = "⭐ " + name;
-        list.appendChild(li);
+    const ingredients = ["빵", "고기", "치즈", "야채", "소스"];
+    function startBurgerGame() {
+      document.getElementById("game-section").style.display = "block";
+      document.getElementById("game-section").innerHTML = `<h2>햄버거 조합 게임</h2>
+        <p>정해진 순서대로 재료를 클릭하세요! 시간 제한: <span id="burger-timer">10</span>초</p>
+        <div id="ingredients"></div>`;
+      burgerCombo = [...ingredients];
+      const ingDiv = document.getElementById("ingredients");
+      ingredients.forEach(ing => {
+        const btn = document.createElement("button");
+        btn.innerText = ing;
+        btn.onclick = () => checkBurger(ing);
+        ingDiv.appendChild(btn);
       });
+      let timeLeft = 10;
+      const timer = setInterval(() => {
+        document.getElementById("burger-timer").innerText = timeLeft;
+        if (timeLeft-- <= 0) {
+          clearInterval(timer);
+          log("시간 초과! 실패!");
+          document.getElementById("game-section").style.display = "none";
+        }
+      }, 1000);
+    }
+
+    function checkBurger(ing) {
+      if (ing === burgerCombo[0]) {
+        burgerCombo.shift();
+        log(`재료 ${ing} 선택`);
+        if (burgerCombo.length === 0) {
+          log("햄버거 완성! 보상: 3 코인");
+          coins += 3;
+          document.getElementById("game-section").style.display = "none";
+        }
+      } else {
+        log(`틀린 재료! 실패`);
+        document.getElementById("game-section").style.display = "none";
+      }
+    }
+
+    function startInvasionGame() {
+      document.getElementById("game-section").style.display = "block";
+      document.getElementById("game-section").innerHTML = `<h2>플랑크톤 침공</h2>
+        <p>플랑크톤의 체력: <span id="plankton-hp">5</span></p>
+        <button onclick="attackPlankton()">공격!</button>`;
+      planktonHP = 5;
+      planktonAttackPattern();
+    }
+
+    function attackPlankton() {
+      planktonHP--;
+      document.getElementById("plankton-hp").innerText = planktonHP;
+      log("플랑크톤을 공격했습니다!");
+      if (planktonHP <= 0) {
+        log("플랑크톤 처치! 보상: 5 코인");
+        coins += 5;
+        document.getElementById("game-section").style.display = "none";
+      }
+    }
+
+    function planktonAttackPattern() {
+      const interval = setInterval(() => {
+        if (planktonHP <= 0) return clearInterval(interval);
+        if (Math.random() < 0.4) {
+          log("플랑크톤이 반격했다! 코인 -1");
+          coins = Math.max(0, coins - 1);
+        }
+      }, 2000);
+    }
+
+    function openMenuShop() {
+      const items = ["강화석", "황금버거", "스페셜 세트"];
+      const prices = [5, 10, 15];
+      let html = "<h2>오늘의 메뉴</h2>";
+      items.forEach((item, i) => {
+        html += `<p>${item} - ${prices[i]} 코인 <button onclick="buyItem(${prices[i]}, '${item}')">구매</button></p>`;
+      });
+      document.getElementById("game-section").innerHTML = html;
+      document.getElementById("game-section").style.display = "block";
+    }
+
+    function buyItem(price, item) {
+      if (coins >= price) {
+        coins -= price;
+        if (item === "강화석") character.stones += 1;
+        log(`${item} 구매 성공!`);
+      } else {
+        log("코인이 부족합니다!");
+      }
+    }
+
+    function showFavorites() {
+      const guests = ["뚱이", "만수르", "펄", "해파리", "퍼프 선생님"];
+      const guest = guests[Math.floor(Math.random() * guests.length)];
+      log(`단골 손님 ${guest} 등장! 2 코인 보너스!`);
+      coins += 2;
+    }
+
+    function showGags() {
+      const gag = gags[Math.floor(Math.random() * gags.length)];
+      log(`개그 코너: ${gag}`);
+    }
+
+    function claimAttendance() {
+      if (attendanceClaimed) return alert("이미 출석했습니다!");
+      log("출석 보상 획득! 5 코인");
+      coins += 5;
+      attendanceClaimed = true;
+    }
+
+    function checkAchievements() {
+      let msg = "업적 확인:";
+      if (coins >= 10) msg += "\n- 부자 손님!";
+      if (attendanceClaimed) msg += "\n- 성실한 출석!";
+      alert(msg);
+    }
+
+    function openEnhance() {
+      document.getElementById("game-section").style.display = "block";
+      document.getElementById("game-section").innerHTML = `
+        <h2>강화 시스템</h2>
+        <p>현재 강화 단계: +${character.level}</p>
+        <p>공격력: ${character.attack} / 방어력: ${character.defense}</p>
+        <p>보유 강화석: ${character.stones}</p>
+        <button onclick="tryEnhance()">강화 시도</button>`;
+    }
+
+    function tryEnhance() {
+      if (character.stones <= 0) return log("강화석이 없습니다!");
+      character.stones--;
+      const successRate = character.level < 50 ? 0.8 : 0.6;
+      const resetRate = character.level >= 50 ? 0.2 : 0;
+      const rand = Math.random();
+      if (rand < successRate) {
+        character.level++;
+        character.attack += 2;
+        character.defense += 1;
+        log(`강화 성공! 현재 +${character.level}`);
+      } else if (rand < successRate + resetRate) {
+        character.level = 0;
+        log("강화 실패! 단계 초기화됨!");
+      } else {
+        character.level = Math.max(0, character.level - 1);
+        log("강화 실패! 1단계 하락!");
+      }
+      openEnhance();
+    }
+
+    function openIdle() {
+      log("잠수 채널: 1분 후 자동 보상 지급 예정...");
+      setTimeout(() => {
+        coins += 1;
+        log("잠수 보상: 1 코인 지급!");
+      }, 60000);
     }
   </script>
 </body>
