@@ -2,198 +2,226 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>집게리아 게임</title>
+  <title>크러스티 크랩 웹 게임</title>
   <style>
     body {
       margin: 0;
       font-family: 'Arial', sans-serif;
-      background: url('krustykrab_bg.jpg') no-repeat center center fixed;
+      background: url('https://i.imgur.com/3TzK4d3.jpg') no-repeat center center fixed;
       background-size: cover;
-      overflow-x: hidden;
-    }
-    header {
-      background-color: rgba(0, 0, 0, 0.7);
       color: #fff;
-      padding: 1rem;
+    }
+
+    .container {
+      padding: 20px;
+      background: rgba(0, 0, 0, 0.6);
+      margin: 20px auto;
+      max-width: 800px;
+      border-radius: 12px;
+      box-shadow: 0 0 12px #000;
+    }
+
+    h1 {
       text-align: center;
-      font-size: 2rem;
+      color: #ffcc00;
+      font-family: 'Comic Sans MS', cursive;
     }
-    nav {
-      display: flex;
-      justify-content: center;
-      flex-wrap: wrap;
-      background-color: rgba(255, 255, 255, 0.8);
-      padding: 1rem;
+
+    .menu-buttons {
+      text-align: center;
+      margin-bottom: 20px;
     }
-    nav button {
-      margin: 0.5rem;
-      padding: 0.75rem 1.5rem;
-      font-size: 1.2rem;
-      border: none;
-      border-radius: 10px;
+
+    .menu-buttons button {
+      padding: 10px 20px;
+      margin: 5px;
       background-color: #ffcc00;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
       cursor: pointer;
-      transition: background-color 0.3s ease;
+      transition: 0.2s;
     }
-    nav button:hover {
+
+    .menu-buttons button:hover {
       background-color: #ffaa00;
     }
-    #mainScene {
-      display: flex;
-      justify-content: space-around;
-      align-items: flex-end;
-      position: relative;
-      width: 100vw;
-      height: 70vh;
-      padding-bottom: 2rem;
-    }
-    .character {
-      transition: all 0.3s ease;
-      margin: 0 3rem;
-    }
-    #squidward {
-      width: 300px;
-    }
-    #spongebob {
-      width: 300px;
-      animation: float 2s infinite ease-in-out;
-    }
-    @keyframes float {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-10px); }
-    }
-    .guest {
-      position: absolute;
-      bottom: 0;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 220px;
-      transition: all 1s ease-in-out;
-    }
-    .coin-display {
-      position: absolute;
-      top: 10px;
-      right: 20px;
-      font-size: 1.5rem;
-      color: white;
-      background-color: rgba(0,0,0,0.5);
-      padding: 10px 20px;
-      border-radius: 10px;
-    }
-    .popup {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: white;
-      padding: 2rem;
-      border-radius: 15px;
-      box-shadow: 0 0 20px rgba(0,0,0,0.5);
+
+    .game-section {
       display: none;
-      z-index: 1000;
     }
-    .popup h2 {
-      margin-top: 0;
+
+    .game-section.active {
+      display: block;
     }
-    .popup button {
-      margin-top: 1rem;
-      padding: 0.5rem 1rem;
-      font-size: 1rem;
+
+    #plankton {
+      width: 50px;
+      height: 50px;
+      background: url('https://i.imgur.com/bCzqW9g.png') no-repeat center/contain;
+      position: absolute;
+      cursor: pointer;
+      display: none;
+    }
+
+    .info-bar {
+      text-align: center;
+      margin-top: 10px;
+      font-size: 18px;
+      color: #00ffcc;
+    }
+
+    .floating-button {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: #ff3399;
+      color: white;
+      padding: 12px 18px;
+      border: none;
+      border-radius: 50px;
+      cursor: pointer;
+      font-weight: bold;
+      box-shadow: 0 0 10px #ff3399;
     }
   </style>
 </head>
 <body>
-  <header>집게리아</header>
-  <nav>
-    <button onclick="openGame('burger')">버거 미니게임</button>
-    <button onclick="openGame('plankton')">플랑크톤 침략</button>
-    <button onclick="openGame('enhancement')">강화</button>
-    <button onclick="openGame('attendance')">출석 보상</button>
-    <button onclick="openGame('gag')">개그 코너</button>
-    <button onclick="openGame('skill')">캐릭터 스킬</button>
-  </nav>
+  <div class="container">
+    <h1>🍔 크러스티 크랩 웹 게임</h1>
+    <div class="menu-buttons">
+      <button onclick="showSection('plankton')">플랑크톤 침략</button>
+      <button onclick="showSection('burger')">햄버거 만들기</button>
+      <button onclick="showJoke()">개그 보기</button>
+      <button onclick="showRegulars()">단골 손님</button>
+    </div>
 
-  <div id="mainScene" onclick="handleGuestClick()">
-    <img id="squidward" class="character" src="squidward.png" alt="징징이">
-    <img id="spongebob" class="character" src="spongebob.png" alt="스폰지밥">
-    <img id="guest" class="guest" src="guest.png" style="display:none" alt="손님">
-    <div class="coin-display">코인: <span id="coinCount">0</span></div>
+    <div class="info-bar" id="dailyMenu"></div>
+
+    <!-- 플랑크톤 침략 -->
+    <div id="plankton" class="game-section">
+      <p>플랑크톤을 클릭해서 막으세요!</p>
+      <div id="planktonTarget"></div>
+      <div>점수: <span id="planktonScore">0</span></div>
+    </div>
+
+    <!-- 햄버거 미니게임 -->
+    <div id="burger" class="game-section">
+      <p>제한 시간 안에 재료를 조합해서 햄버거를 완성하세요!</p>
+      <button onclick="makeBurger()">🍔 햄버거 만들기</button>
+      <div id="burgerResult"></div>
+    </div>
+
+    <!-- 개그 -->
+    <div id="jokeSection" class="game-section">
+      <p id="jokeText"></p>
+    </div>
+
+    <!-- 단골 -->
+    <div id="regularsSection" class="game-section">
+      <ul id="regularList"></ul>
+    </div>
   </div>
 
-  <div id="popup" class="popup">
-    <h2 id="popupTitle">모드 이름</h2>
-    <p id="popupContent">여기에 해당 모드 설명이 들어갑니다.</p>
-    <button onclick="closePopup()">닫기</button>
-  </div>
+  <div id="plankton" onclick="hitPlankton()"></div>
 
-  <audio id="bgm" src="bgm.mp3" autoplay loop></audio>
-  <audio id="effect" src="effect.mp3"></audio>
+  <button class="floating-button" onclick="showRandomMenu()">📋 오늘의 메뉴</button>
 
   <script>
-    let coins = 0;
-    let guestVisible = false;
+    // 날짜별 오늘의 메뉴
+    const dailyMenus = [
+      "치즈버거 + 감자튀김",
+      "크래비 패티 스페셜",
+      "해파리 젤리 버거",
+      "플랑크톤 스튜",
+      "스폰지 소다와 세트",
+      "뚱이 버거 콤보",
+      "집게사장 럭셔리 세트"
+    ];
 
-    function openGame(type) {
-      const popup = document.getElementById('popup');
-      const title = document.getElementById('popupTitle');
-      const content = document.getElementById('popupContent');
-
-      switch(type) {
-        case 'burger':
-          title.textContent = '버거 미니게임';
-          content.textContent = '시간 내에 정확한 순서로 재료를 클릭해 햄버거를 완성하세요!';
-          break;
-        case 'plankton':
-          title.textContent = '플랑크톤 침략';
-          content.textContent = '플랑크톤을 클릭해서 침략을 막아주세요!';
-          break;
-        case 'enhancement':
-          title.textContent = '캐릭터 강화';
-          content.textContent = '강화석을 사용해 캐릭터 능력치를 상승시켜 보세요.';
-          break;
-        case 'attendance':
-          title.textContent = '출석 보상';
-          content.textContent = '매일 접속 시 보상을 획득할 수 있어요!';
-          break;
-        case 'gag':
-          title.textContent = '개그 코너';
-          content.textContent = '집게사장의 유쾌한 개그를 들어보세요!';
-          break;
-        case 'skill':
-          title.textContent = '캐릭터 스킬';
-          content.textContent = '강화에 따라 다양한 스킬이 해금됩니다.';
-          break;
-      }
-      popup.style.display = 'block';
+    function showRandomMenu() {
+      const today = new Date().getDay();
+      document.getElementById('dailyMenu').innerText = "오늘의 메뉴 🍽️: " + dailyMenus[today];
     }
 
-    function closePopup() {
-      document.getElementById('popup').style.display = 'none';
+    showRandomMenu();
+
+    function showSection(id) {
+      const sections = document.querySelectorAll('.game-section');
+      sections.forEach(s => s.classList.remove('active'));
+      if (id === 'plankton') startPlanktonGame();
+      if (id === 'burger') document.getElementById('burger').classList.add('active');
     }
 
-    function handleGuestClick() {
-      if (guestVisible) {
-        document.getElementById('guest').style.display = 'none';
-        document.getElementById('effect').play();
-        coins++;
-        document.getElementById('coinCount').textContent = coins;
-        guestVisible = false;
-        spawnGuestWithDelay();
-      }
+    // 플랑크톤 게임
+    let planktonScore = 0;
+
+    function startPlanktonGame() {
+      document.getElementById('plankton').classList.add('active');
+      const plankton = document.getElementById('plankton');
+      plankton.style.display = 'block';
+      movePlankton();
     }
 
-    function spawnGuest() {
-      const guest = document.getElementById('guest');
-      guest.style.display = 'block';
-      guestVisible = true;
+    function movePlankton() {
+      const plankton = document.getElementById('plankton');
+      const x = Math.random() * (window.innerWidth - 50);
+      const y = Math.random() * (window.innerHeight - 50);
+      plankton.style.left = `${x}px`;
+      plankton.style.top = `${y}px`;
     }
 
-    function spawnGuestWithDelay() {
-      setTimeout(spawnGuest, 3000);
+    function hitPlankton() {
+      planktonScore++;
+      document.getElementById('planktonScore').innerText = planktonScore;
+      movePlankton();
     }
 
-    spawnGuestWithDelay();
+    // 햄버거 만들기
+    function makeBurger() {
+      const ingredients = ["패티", "양상추", "치즈", "피클", "토마토", "빵"];
+      const result = ingredients.sort(() => Math.random() - 0.5).slice(0, 3);
+      document.getElementById("burgerResult").innerText = "🧾 조합된 재료: " + result.join(", ");
+    }
+
+    // 개그 기능
+    const jokes = [
+      "스폰지밥: '이 햄버거 이름은 뭔가요?' 집게사장: '너 월급 깎임 버거다!'",
+      "징징이: '오늘은 일 안 할래요.' 집게사장: '좋아, 내일부터도 안 해도 돼. 해고야!'",
+      "플랑크톤: '이번엔 진짜 레시피 훔칠 거야!' -> 5초 후 체포됨.",
+      "스폰지밥: '이게 바로 웃픈 현실 버거야.'",
+      "뚱이: '나는 생각하지 않아. 그래서 행복해.'"
+    ];
+
+    function showJoke() {
+      const joke = jokes[Math.floor(Math.random() * jokes.length)];
+      const section = document.getElementById("jokeSection");
+      document.querySelectorAll('.game-section').forEach(s => s.classList.remove('active'));
+      section.classList.add("active");
+      document.getElementById("jokeText").innerText = "🤣 " + joke;
+    }
+
+    // 단골 손님
+    const regulars = [
+      "뚱이 - 단골 1호",
+      "버블버디 - 단골 2호",
+      "레이디 피쉬 - 단골 3호",
+      "만수르 - 럭셔리 VIP",
+      "노인 물고기 - 매일 오는 손님"
+    ];
+
+    function showRegulars() {
+      const section = document.getElementById("regularsSection");
+      document.querySelectorAll('.game-section').forEach(s => s.classList.remove('active'));
+      section.classList.add("active");
+      const list = document.getElementById("regularList");
+      list.innerHTML = '';
+      regulars.forEach(name => {
+        const li = document.createElement("li");
+        li.innerText = "⭐ " + name;
+        list.appendChild(li);
+      });
+    }
   </script>
 </body>
 </html>
