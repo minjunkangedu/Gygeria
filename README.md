@@ -1,122 +1,198 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Gygeria: Krusty Krab Web Game</title>
+  <meta charset="UTF-8">
+  <title>크러스티 크랩 게임</title>
   <style>
     body {
       margin: 0;
-      font-family: 'Comic Sans MS', cursive, sans-serif;
       background: url('krustykrab_bg.jpg') no-repeat center center fixed;
       background-size: cover;
-      color: white;
+      font-family: 'Arial', sans-serif;
+      color: #fff;
     }
     .container {
-      max-width: 960px;
-      margin: auto;
+      background-color: rgba(0,0,0,0.7);
       padding: 20px;
-      background-color: rgba(0, 0, 0, 0.7);
-      border-radius: 20px;
+      max-width: 800px;
+      margin: auto;
+      margin-top: 50px;
+      border-radius: 16px;
+      box-shadow: 0 0 10px #333;
     }
-    h1 {
-      text-align: center;
-    }
-    .section {
-      margin-top: 30px;
-    }
-    button {
+    input, button {
+      padding: 10px;
       margin: 5px;
-      padding: 10px 20px;
-      font-size: 16px;
-      border: none;
       border-radius: 8px;
-      background-color: #fbbd08;
-      color: black;
-      cursor: pointer;
     }
-    button:hover {
-      background-color: #f2711c;
+    .highlight { animation: blink 1s infinite; color: yellow; }
+    @keyframes blink {
+      0%, 100% { opacity: 1 }
+      50% { opacity: 0.2 }
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>Gygeria: Krusty Krab Web Game</h1>
-    <div id="game">
-      <!-- 메인 게임 메뉴 및 상태 출력 -->
+  <div class="container" id="app">
+    <h1>크러스티 크랩 게임</h1>
+    <div id="namePrompt">
+      <p class="highlight">이름을 입력하세요 (최초 방문):</p>
+      <input id="usernameInput" placeholder="닉네임 입력"/>
+      <button onclick="submitName()">시작</button>
     </div>
-    <div class="section">
-      <button onclick="playBurgerGame()">스폰지밥 햄버거 미니게임</button>
-      <button onclick="playPlanktonGame()">플랑크톤 침략 게임</button>
-      <button onclick="openEnhanceGacha()">강화 가챠</button>
-      <button onclick="runIdleMode()">잠수 채널</button>
-      <button onclick="viewAchievements()">업적 보기</button>
-      <button onclick="showLoyalCustomers()">단골 손님</button>
-      <button onclick="useCharacterSkill()">캐릭터 고유 스킬</button>
+
+    <div id="mainGame" style="display:none;">
+      <p>안녕하세요, <span id="playerName"></span>님!</p>
+      <p>보유 코인: <span id="coinCount">0</span>개</p>
+      <p>강화 레벨: <span id="enhanceLevel">0</span></p>
+      <button onclick="openEnhance()">강화하기</button>
+      <button onclick="gachaDraw()">강화 가챠</button>
+      <button onclick="startBurgerGame()">햄버거 만들기</button>
+      <button onclick="startDefenseGame()">플랑크톤 침공</button>
+      <button onclick="openSubChannel()">잠수 채널</button>
+      <button onclick="openAdmin()">관리자</button>
+    </div>
+
+    <div id="adminPanel" style="display:none;">
+      <h3>관리자 로그인</h3>
+      <input id="adminName" placeholder="지급할 유저 이름">
+      <input id="adminCoin" type="number" placeholder="코인 수">
+      <button onclick="giveCoin()">코인 지급</button>
     </div>
   </div>
 
-  <audio id="bgm" loop autoplay>
-    <source src="bgm.mp3" type="audio/mpeg" />
-  </audio>
-  <audio id="effect">
-    <source src="effect.mp3" type="audio/mpeg" />
-  </audio>
+  <!-- 음악 및 효과음 -->
+  <audio id="bgm" src="bgm.mp3" loop autoplay></audio>
+  <audio id="effect" src="effect.mp3"></audio>
 
+  <!-- Firebase 연동 -->
   <script type="module">
-    // Firebase 연동
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getDatabase, ref, set, get, child, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getDatabase, ref, set, get, update } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
     const firebaseConfig = {
-      apiKey: "YOUR_API_KEY_HERE",
+      apiKey: "YOUR_API_KEY",
       authDomain: "gygeria-9f319.firebaseapp.com",
       databaseURL: "https://gygeria-9f319-default-rtdb.firebaseio.com",
       projectId: "gygeria-9f319",
       storageBucket: "gygeria-9f319.appspot.com",
       messagingSenderId: "570080414698",
-      appId: "YOUR_APP_ID_HERE"
+      appId: "YOUR_APP_ID"
     };
 
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    // 게임 관련 함수들 간략 예시 (실제 내용은 기능에 맞게 세부 구현 필요)
-    function playBurgerGame() {
-      alert("[스폰지밥 햄버거 게임] 시간 내에 재료를 조합하세요!");
-      // 게임 로직 구현 필요
+    let username = localStorage.getItem('kk_name');
+    let coin = 0;
+    let enhance = 0;
+
+    const namePrompt = document.getElementById('namePrompt');
+    const mainGame = document.getElementById('mainGame');
+    const coinCount = document.getElementById('coinCount');
+    const enhanceLevel = document.getElementById('enhanceLevel');
+    const playerName = document.getElementById('playerName');
+
+    if (username) {
+      namePrompt.style.display = 'none';
+      mainGame.style.display = 'block';
+      playerName.textContent = username;
+      loadData();
     }
 
-    function playPlanktonGame() {
-      alert("[플랑크톤 침략 게임] 플랑크톤을 막아주세요!");
-      // AI 패턴 기반 방어 구현 필요
+    window.submitName = () => {
+      username = document.getElementById('usernameInput').value;
+      if (username) {
+        localStorage.setItem('kk_name', username);
+        namePrompt.style.display = 'none';
+        mainGame.style.display = 'block';
+        playerName.textContent = username;
+        saveData();
+      }
+    };
+
+    function saveData() {
+      set(ref(db, 'users/' + username), {
+        coin, enhance
+      });
     }
 
-    function openEnhanceGacha() {
-      alert("[강화 가챠] 강화석 혹은 축복 아이템 획득!");
-      // 강화 시스템, 확률, 실패 등 적용 필요
+    function loadData() {
+      get(ref(db, 'users/' + username)).then((snap) => {
+        if (snap.exists()) {
+          const data = snap.val();
+          coin = data.coin || 0;
+          enhance = data.enhance || 0;
+          updateUI();
+        }
+      });
     }
 
-    function runIdleMode() {
-      alert("[잠수 채널] 황금 스폰지밥이 코인을 생산합니다 (1시간마다 1코인)");
-      // 타이머 기반 수동 코인 지급 구현
+    function updateUI() {
+      coinCount.textContent = coin;
+      enhanceLevel.textContent = enhance;
     }
 
-    function viewAchievements() {
-      alert("[업적 시스템] 업적을 달성해보세요!");
-      // 업적 조건 확인 및 보상 시스템 필요
-    }
+    window.openEnhance = () => {
+      const cost = 5;
+      if (coin >= cost) {
+        const success = Math.random() < 0.8;
+        if (success) enhance++;
+        else if (enhance >= 50 && Math.random() < 0.3) enhance = 0;
+        coin -= cost;
+        updateUI();
+        saveData();
+        document.getElementById("effect").play();
+      }
+    };
 
-    function showLoyalCustomers() {
-      alert("[단골 손님] 특별한 손님 등장! 코인을 보상으로 획득하세요.");
-      // 등장 확률 및 보상 처리
-    }
+    window.gachaDraw = () => {
+      const cost = 10;
+      if (coin >= cost) {
+        coin -= cost;
+        const reward = Math.random() < 0.1 ? '강화석' : '코인';
+        if (reward === '강화석') enhance++;
+        else coin += 5;
+        updateUI();
+        saveData();
+        document.getElementById("effect").play();
+      }
+    };
 
-    function useCharacterSkill() {
-      alert("[캐릭터 스킬] 캐릭터 고유 능력을 발동합니다!");
-      // 캐릭터별 스킬 효과 발동 구현 필요
-    }
+    window.startBurgerGame = () => {
+      alert('제한 시간 내에 재료를 조합하는 햄버거 게임 시작!');
+    };
+
+    window.startDefenseGame = () => {
+      alert('AI 기반 플랑크톤 침공 방어 게임 시작!');
+    };
+
+    window.openSubChannel = () => {
+      setInterval(() => {
+        coin++;
+        updateUI();
+        saveData();
+      }, 3600000); // 1시간
+      alert('잠수 채널 ON: 1시간마다 코인 +1');
+    };
+
+    window.openAdmin = () => {
+      const pass = prompt("관리자 비밀번호 입력:");
+      if (pass === 'komq3244') {
+        document.getElementById('adminPanel').style.display = 'block';
+      }
+    };
+
+    window.giveCoin = () => {
+      const target = document.getElementById('adminName').value;
+      const amount = parseInt(document.getElementById('adminCoin').value);
+      if (target && amount) {
+        update(ref(db, 'users/' + target), {
+          coin: amount
+        });
+        alert(`${target}에게 ${amount}코인 지급됨`);
+      }
+    };
   </script>
 </body>
 </html>
