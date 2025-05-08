@@ -2,151 +2,176 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>크러스티 크랩 게임</title>
-  <link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
+  <title>집게리아 게임</title>
   <style>
-    * {
+    body {
       margin: 0;
       padding: 0;
-      box-sizing: border-box;
-      font-family: 'Jua', sans-serif;
-    }
-    body {
       background: url('krustykrab_bg.jpg') no-repeat center center fixed;
       background-size: cover;
+      font-family: 'Arial', sans-serif;
       color: #fff;
+      text-align: center;
     }
-    #game-container {
-      width: 100%;
-      height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      backdrop-filter: blur(6px);
-      background-color: rgba(0,0,0,0.6);
+    .container {
+      background: rgba(0, 0, 0, 0.7);
       padding: 20px;
+      margin: 40px auto;
+      max-width: 600px;
+      border-radius: 16px;
     }
     button {
       padding: 10px 20px;
-      margin: 10px;
-      font-size: 1.2rem;
+      margin: 5px;
       border: none;
+      background-color: #fcbf49;
+      color: #000;
+      font-weight: bold;
       border-radius: 10px;
-      background-color: #f1c40f;
-      color: #222;
       cursor: pointer;
-      transition: 0.3s;
     }
-    button:hover {
-      background-color: #f39c12;
+    #coinDisplay {
+      font-size: 18px;
+      margin-bottom: 10px;
+      color: #f1fa8c;
     }
-    .section {
+    #gameSection, #gagSection {
       display: none;
-      margin-top: 20px;
-    }
-    .visible {
-      display: block;
     }
   </style>
 </head>
 <body>
-  <div id="game-container">
-    <h1>크러스티 크랩 게임</h1>
-    <input type="text" id="username" placeholder="이름을 입력하세요">
-    <button onclick="startGame()">게임 시작</button>
 
-    <div id="main-menu" class="section">
-      <h2>메인 메뉴</h2>
-      <button onclick="playBurgerGame()">스폰지밥 햄버거 미니게임</button>
-      <button onclick="playPlanktonGame()">플랑크톤 침략 게임</button>
-      <button onclick="openEnhancement()">캐릭터 강화</button>
-      <button onclick="openGacha()">강화 가챠</button>
-      <button onclick="openAttendance()">출석 보상</button>
-      <button onclick="checkAchievements()">업적 확인</button>
-      <button onclick="viewRegulars()">단골 손님 보기</button>
-    </div>
+<audio id="bgm" src="bgm.mp3" autoplay loop></audio>
 
-    <!-- 여기에 각각의 게임과 시스템 섹션이 추가될 수 있습니다 -->
+<div class="container">
+  <h1>어서오세요, 집게리아입니다!</h1>
+  <p id="coinDisplay">코인: 0</p>
+
+  <div id="mainMenu">
+    <button onclick="startBurgerGame()">스폰지밥 햄버거 게임</button>
+    <button onclick="startPlanktonGame()">플랑크톤 침략</button>
+    <button onclick="strengthenCharacter()">캐릭터 강화</button>
+    <button onclick="drawEnhancement()">강화 가챠</button>
+    <button onclick="checkAttendance()">출석 보상</button>
+    <button onclick="showGag()">개그 코너</button>
   </div>
 
-  <!-- Firebase SDK -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getFirestore, doc, setDoc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+  <div id="gameSection">
+    <p id="gameText">게임 영역</p>
+    <button onclick="endGame()">돌아가기</button>
+  </div>
 
-    const firebaseConfig = {
-      apiKey: "YOUR_API_KEY",
-      authDomain: "gygeria-9f319.firebaseapp.com",
-      projectId: "gygeria-9f319",
-      storageBucket: "gygeria-9f319.appspot.com",
-      messagingSenderId: "570080414698",
-      appId: "YOUR_APP_ID"
-    };
+  <div id="gagSection">
+    <p id="gagText">개그가 여기에!</p>
+    <button onclick="endGag()">돌아가기</button>
+  </div>
+</div>
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
+<script type="module">
+  // Firebase 설정
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getDatabase, ref, get, set, update } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
-    // 예시 저장 코드
-    async function saveUserData(name) {
-      await setDoc(doc(db, "users", name), {
-        coin: 10,
-        enhanceLevel: 0,
-        attendance: new Date().toDateString()
-      });
+  const firebaseConfig = {
+    apiKey: "YOUR_API_KEY",
+    authDomain: "gygeria-9f319.firebaseapp.com",
+    projectId: "gygeria-9f319",
+    storageBucket: "gygeria-9f319.appspot.com",
+    messagingSenderId: "570080414698",
+    appId: "YOUR_APP_ID",
+    databaseURL: "https://gygeria-9f319-default-rtdb.firebaseio.com"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+
+  const username = prompt("이름을 입력하세요:");
+  const userRef = ref(db, 'users/' + username);
+
+  let coins = 0;
+
+  get(userRef).then(snapshot => {
+    if (snapshot.exists()) {
+      coins = snapshot.val().coins || 0;
+    } else {
+      set(userRef, { coins: 0 });
     }
+    updateCoinDisplay();
+  });
 
-    window.saveUserData = saveUserData;
-  </script>
+  function updateCoinDisplay() {
+    document.getElementById("coinDisplay").innerText = `코인: ${coins}`;
+  }
 
-  <!-- 게임 로직 -->
-  <script>
-    let username = "";
+  function addCoins(amount) {
+    coins += amount;
+    update(userRef, { coins });
+    updateCoinDisplay();
+  }
 
-    function startGame() {
-      const input = document.getElementById("username");
-      if (!input.value) {
-        alert("이름을 입력해주세요.");
-        return;
-      }
-      username = input.value;
-      saveUserData(username);  // Firebase에 저장
-      document.getElementById("main-menu").classList.add("visible");
-      input.style.display = 'none';
-      event.target.style.display = 'none';
-    }
+  // 게임 및 기능 실행 예시
+  function startBurgerGame() {
+    showSection("gameSection");
+    document.getElementById("gameText").innerText = "스폰지밥이 햄버거를 만들고 있어요!";
+    addCoins(1);
+  }
 
-    function playBurgerGame() {
-      alert("스폰지밥 미니게임이 실행됩니다. 제한 시간 안에 재료를 조합하세요!");
-    }
+  function startPlanktonGame() {
+    showSection("gameSection");
+    document.getElementById("gameText").innerText = "플랑크톤이 침략 중입니다!";
+    addCoins(2);
+  }
 
-    function playPlanktonGame() {
-      alert("플랑크톤 침략 게임이 시작됩니다. 플랑크톤을 막으세요!");
-    }
+  function strengthenCharacter() {
+    showSection("gameSection");
+    document.getElementById("gameText").innerText = "캐릭터가 강화되고 있습니다!";
+    addCoins(1);
+  }
 
-    function openEnhancement() {
-      alert("강화 시스템입니다. 강화석과 축복으로 강화해보세요!");
-    }
+  function drawEnhancement() {
+    showSection("gameSection");
+    const results = ["강화석", "집게의 축복", "실패!"];
+    const result = results[Math.floor(Math.random() * results.length)];
+    document.getElementById("gameText").innerText = `강화 가챠 결과: ${result}`;
+    if (result !== "실패!") addCoins(1);
+  }
 
-    function openGacha() {
-      alert("가챠를 돌려 강화 아이템을 획득하세요!");
-    }
+  function checkAttendance() {
+    showSection("gameSection");
+    document.getElementById("gameText").innerText = "출석 보상으로 3코인을 획득!";
+    addCoins(3);
+  }
 
-    function openAttendance() {
-      alert("출석 보상: 오늘도 접속해주셔서 감사합니다!");
-    }
+  function showGag() {
+    showSection("gagSection");
+    const gags = [
+      "스폰지밥이 만든 버거는 '치즈' 대신 '해파리젤리'가 들어가요!",
+      "플랑크톤: \"이번엔 꼭 비법 레시피를 훔칠거야!\" → 실패",
+      "징징이: \"오늘도 알바라니… 사장님 월급은요?\"",
+      "뚱이: \"햄버거를 먹으려다 입이 햄이 됐어.\""
+    ];
+    document.getElementById("gagText").innerText = gags[Math.floor(Math.random() * gags.length)];
+  }
 
-    function checkAchievements() {
-      alert("업적 확인: 새로운 업적을 달성해보세요!");
-    }
+  function endGame() {
+    hideSections();
+  }
 
-    function viewRegulars() {
-      alert("단골 손님 목록을 확인합니다. 뚱이, 만수르 등이 올 수 있어요!");
-    }
-  </script>
+  function endGag() {
+    hideSections();
+  }
 
-  <!-- 배경 음악 -->
-  <audio src="bgm.mp3" autoplay loop></audio>
+  function hideSections() {
+    document.getElementById("gameSection").style.display = "none";
+    document.getElementById("gagSection").style.display = "none";
+  }
+
+  function showSection(id) {
+    hideSections();
+    document.getElementById(id).style.display = "block";
+  }
+</script>
+
 </body>
 </html>
