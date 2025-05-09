@@ -1,255 +1,161 @@
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>스폰지밥 버거 제국</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 0;
-      background-image: url('https://example.com/background.jpg'); /* 배경 이미지 URL */
-      background-size: cover;
-      text-align: center;
-      color: white;
-    }
+import pygame
+import random
 
-    h1 {
-      color: #f2b600;
-      font-size: 40px;
-      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.6);
-      margin-top: 20px;
-    }
+# 초기화
+pygame.init()
 
-    #coin-status {
-      font-size: 20px;
-      margin-top: 20px;
-      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.6);
-    }
+# 화면 설정
+WIDTH, HEIGHT = 800, 600
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
+pygame.display.set_caption("스폰지밥 타워 디펜스")
 
-    #equipment-container {
-      margin-top: 30px;
-    }
+# 색상 정의
+WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
+GREEN = (0, 255, 0)
+RED = (255, 0, 0)
 
-    button {
-      padding: 10px 20px;
-      margin: 5px;
-      font-size: 16px;
-      cursor: pointer;
-      background-color: #007BFF;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
-    }
+# 기본 폰트 설정
+font = pygame.font.SysFont('arial', 20)
 
-    button:disabled {
-      background-color: #aaa;
-      cursor: not-allowed;
-    }
+# 타워 기본 클래스
+class Tower(pygame.sprite.Sprite):
+    def __init__(self, x, y, damage, range, cooldown):
+        super().__init__()
+        self.image = pygame.Surface((50, 50))
+        self.image.fill(GREEN)
+        self.rect = self.image.get_rect()
+        self.rect.center = (x, y)
+        self.damage = damage
+        self.range = range
+        self.cooldown = cooldown
+        self.last_shot = pygame.time.get_ticks()
 
-    #equipment-status {
-      margin-top: 40px;
-      font-size: 18px;
-    }
+    def update(self, enemies):
+        now = pygame.time.get_ticks()
+        if now - self.last_shot > self.cooldown:
+            for enemy in enemies:
+                if self.rect.colliderect(enemy.rect):  # 적이 타워 범위 내에 있으면
+                    enemy.hp -= self.damage
+                    self.last_shot = now  # 타워가 공격 후 쿨타임 리셋
 
-    #story-container {
-      margin-top: 30px;
-      font-size: 16px;
-    }
+# 특수 능력을 가진 타워 (스폰지밥 예시)
+class SpecialTower(Tower):
+    def __init__(self, x, y, damage, range, cooldown):
+        super().__init__(x, y, damage, range, cooldown)
+        self.special_ability_ready = True
+        self.special_ability_time = 5000  # 5초 후 특수 능력 리셋
 
-    #mini-game-container {
-      margin-top: 30px;
-      font-size: 16px;
-    }
+    def special_ability(self, enemies):
+        if self.special_ability_ready:
+            for enemy in enemies:
+                enemy.hp -= 20  # 모든 적에게 20의 피해를 입힘
+            self.special_ability_ready = False
+            pygame.time.set_timer(pygame.USEREVENT, self.special_ability_time)
 
-    .character {
-      display: inline-block;
-      margin-top: 20px;
-    }
+    def reset_special_ability(self):
+        self.special_ability_ready = True  # 특수 능력 리셋
 
-    .character img {
-      width: 150px;
-      height: auto;
-      margin: 10px;
-    }
+# 적 기본 클래스
+class Enemy(pygame.sprite.Sprite):
+    def __init__(self, x, y, hp, speed):
+        super().__init__()
+        self.image = pygame.Surface((40, 40))
+        self.image.fill(RED)
+        self.rect = self.image.get_rect()
+        self.rect.center = (x, y)
+        self.hp = hp
+        self.speed = speed
 
-    .equipment-button {
-      display: flex;
-      justify-content: center;
-      margin: 10px 0;
-    }
+    def update(self):
+        self.rect.x -= self.speed  # 적이 왼쪽으로 이동
 
-    .equipment-button img {
-      width: 60px;
-      height: 60px;
-      margin: 10px;
-      cursor: pointer;
-    }
-  </style>
-</head>
-<body>
+        # 적이 화면 밖으로 나가면 게임에서 제거
+        if self.rect.right < 0:
+            self.kill()
 
-  <h1>스폰지밥 버거 제국</h1>
+# 회복하는 적 (특수 능력)
+class HealingEnemy(Enemy):
+    def __init__(self, x, y, hp, speed):
+        super().__init__(x, y, hp, speed)
+        self.heal_timer = 0
 
-  <div id="story-container">
-    <h3>스토리 진행</h3>
-    <p id="story-text">
-      스폰지밥은 집게리아에서 최고의 버거를 만들고 있습니다. 하지만 어느 날, 
-      집게사장이 비밀스러운 버거 레시피를 훔치려는 플랑크톤의 침략을 받게 됩니다.
-      당신은 스폰지밥을 도와 버거를 만들고, 장비를 업그레이드하여 플랑크톤의 침략을 막아야 합니다!
-    </p>
-    <button onclick="startGame()">게임 시작</button>
-  </div>
+    def update(self):
+        super().update()
+        if self.heal_timer >= 300:  # 300 프레임마다 체력 회복
+            self.hp += 10
+            self.heal_timer = 0
+        self.heal_timer += 1
 
-  <div id="coin-status">
-    현재 코인: <span id="coin-count">1000</span> 코인
-  </div>
+# 기후 시스템
+class Weather:
+    def __init__(self):
+        self.weather_type = random.choice(["Sunny", "Rainy", "Windy"])  # 날씨를 무작위로 선택
+        self.weather_effect = self.apply_weather_effect()
 
-  <div id="equipment-container">
-    <h2>장비 구매</h2>
-    <div class="equipment-button">
-      <img src="https://example.com/burger-machine.png" alt="버거 제작기" onclick="purchaseEquipment(0)" />
-      <img src="https://example.com/coin-booster.png" alt="코인 강화기" onclick="purchaseEquipment(1)" />
-      <img src="https://example.com/order-machine.png" alt="주문 처리기" onclick="purchaseEquipment(2)" />
-    </div>
+    def apply_weather_effect(self):
+        if self.weather_type == "Sunny":
+            return "타워 공격력 +10%"
+        elif self.weather_type == "Rainy":
+            return "타워 공격 범위 -20%"
+        elif self.weather_type == "Windy":
+            return "타워 공격 속도 +15%"
 
-    <h3>장비 강화</h3>
-    <button onclick="upgradeEquipment(0)">버거 제작기 강화</button>
-    <button onclick="upgradeEquipment(1)">코인 강화기 강화</button>
-    <button onclick="upgradeEquipment(2)">주문 처리기 강화</button>
-  </div>
+    def get_weather_info(self):
+        return f"날씨: {self.weather_type}, 효과: {self.weather_effect}"
 
-  <div id="equipment-status">
-    <h3>장비 상태</h3>
-    <p id="equipment-status-text"></p>
-  </div>
+# 게임 설정
+clock = pygame.time.Clock()
+all_sprites = pygame.sprite.Group()
+enemies = pygame.sprite.Group()
+towers = pygame.sprite.Group()
 
-  <div class="character">
-    <img src="https://example.com/spongebob.png" alt="스폰지밥" />
-    <img src="https://example.com/squidward.png" alt="징징이" />
-  </div>
+# 타워, 적 생성 예시
+spongebob_tower = SpecialTower(400, 300, damage=10, range=100, cooldown=1000)
+all_sprites.add(spongebob_tower)
+towers.add(spongebob_tower)
 
-  <div id="mini-game-container">
-    <h3>미니게임</h3>
-    <button onclick="startMiniGame()">버거 만들기 미니게임</button>
-  </div>
+enemy1 = HealingEnemy(800, 300, hp=50, speed=2)
+all_sprites.add(enemy1)
+enemies.add(enemy1)
 
-  <script>
-    // 기본 설정
-    let coinCount = 1000;
-    let burgerSpeed = 1;
-    let miniGameActive = false;
+# 날씨 객체 생성
+current_weather = Weather()
 
-    // 장비 시스템
-    class Equipment {
-      constructor(name, effect, price, level = 1) {
-        this.name = name;
-        this.effect = effect;
-        this.price = price;
-        this.level = level;
-        this.upgradeCost = 100 * level;
-      }
+# 메인 게임 루프
+running = True
+while running:
+    screen.fill(WHITE)
 
-      upgrade() {
-        if (coinCount >= this.upgradeCost) {
-          coinCount -= this.upgradeCost;
-          this.level++;
-          this.effect *= 1.2;
-          this.upgradeCost = Math.floor(this.upgradeCost * 1.5);
-          updateGameStatus();
-          logMessage(`${this.name}이(가) 레벨 ${this.level}로 강화되었습니다!`);
-        } else {
-          logMessage("코인이 부족합니다!");
-        }
-      }
-    }
+    # 이벤트 처리
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+        elif event.type == pygame.USEREVENT:  # 특수 능력 리셋
+            spongebob_tower.reset_special_ability()
 
-    // 장비 목록
-    let equipmentList = [
-      new Equipment("버거 제작기", 1.1, 200),
-      new Equipment("코인 강화기", 1.2, 300),
-      new Equipment("주문 처리기", 1.5, 500)
-    ];
+    # 게임 업데이트
+    all_sprites.update()
 
-    // 게임 시작
-    function startGame() {
-      document.getElementById("story-container").style.display = "none";
-      updateGameStatus();
-      document.getElementById("coin-status").style.display = "block";
-      document.getElementById("equipment-container").style.display = "block";
-    }
+    # 타워의 특수 능력 발동 (예: 'S'키를 누르면)
+    keys = pygame.key.get_pressed()
+    if keys[pygame.K_s]:
+        spongebob_tower.special_ability(enemies)
 
-    // 장비 구매 함수
-    function purchaseEquipment(index) {
-      const equipment = equipmentList[index];
-      if (coinCount >= equipment.price) {
-        coinCount -= equipment.price;
-        logMessage(`${equipment.name}을(를) 구매하셨습니다!`);
-        updateGameStatus();
-      } else {
-        logMessage("코인이 부족합니다!");
-      }
-    }
+    # 날씨 정보 출력
+    weather_text = font.render(current_weather.get_weather_info(), True, BLACK)
+    screen.blit(weather_text, (10, 10))
 
-    // 장비 강화 함수
-    function upgradeEquipment(index) {
-      const equipment = equipmentList[index];
-      equipment.upgrade();
-    }
+    # 적과 타워의 상태 출력
+    for tower in towers:
+        pygame.draw.rect(screen, GREEN, tower.rect)
+    for enemy in enemies:
+        pygame.draw.rect(screen, RED, enemy.rect)
 
-    // 미니게임 시작
-    function startMiniGame() {
-      if (!miniGameActive) {
-        miniGameActive = true;
-        logMessage("버거 만들기 미니게임이 시작되었습니다!");
-        document.getElementById("mini-game-container").innerHTML = `
-          <h3>버거 만들기 미니게임</h3>
-          <p>버거를 만들고 코인을 획득하세요! 성공적으로 버거를 만들면 코인을 얻습니다.</p>
-          <button onclick="playBurgerMiniGame()">버거 만들기</button>
-        `;
-      }
-    }
+    # 화면 업데이트
+    pygame.display.flip()
 
-    // 버거 만들기 미니게임
-    function playBurgerMiniGame() {
-      let randomSuccess = Math.random() < 0.7;
-      if (randomSuccess) {
-        coinCount += 10;
-        logMessage("버거를 성공적으로 만들었습니다! 10 코인을 획득했습니다.");
-      } else {
-        logMessage("버거 만들기에 실패했습니다.");
-      }
-      updateGameStatus();
-      endMiniGame();
-    }
+    # FPS 설정
+    clock.tick(60)
 
-    // 미니게임 종료
-    function endMiniGame() {
-      setTimeout(() => {
-        miniGameActive = false;
-        document.getElementById("mini-game-container").innerHTML = `
-          <h3>미니게임</h3>
-          <button onclick="startMiniGame()">버거 만들기 미니게임</button>
-        `;
-      }, 2000);
-    }
-
-    // UI 업데이트 함수
-    function updateGameStatus() {
-      document.getElementById("coin-count").innerText = coinCount;
-      document.getElementById("equipment-status-text").innerHTML = equipmentList.map(equipment =>
-        `${equipment.name} - 레벨: ${equipment.level}, 효과: ${equipment.effect.toFixed(2)}`
-      ).join('<br>');
-    }
-
-    // 로그 메시지 출력
-    function logMessage(message) {
-      console.log(message);
-    }
-
-    updateGameStatus();
-  </script>
-</body>
-</html>
+pygame.quit()
