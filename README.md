@@ -9,17 +9,23 @@
       font-family: Arial, sans-serif;
       margin: 0;
       padding: 0;
-      background-color: #f4f4f9;
+      background-image: url('https://example.com/background.jpg'); /* 배경 이미지 URL */
+      background-size: cover;
       text-align: center;
+      color: white;
     }
 
     h1 {
       color: #f2b600;
+      font-size: 40px;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.6);
+      margin-top: 20px;
     }
 
     #coin-status {
       font-size: 20px;
       margin-top: 20px;
+      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.6);
     }
 
     #equipment-container {
@@ -35,6 +41,7 @@
       color: white;
       border: none;
       border-radius: 5px;
+      box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
     }
 
     button:disabled {
@@ -57,6 +64,29 @@
       font-size: 16px;
     }
 
+    .character {
+      display: inline-block;
+      margin-top: 20px;
+    }
+
+    .character img {
+      width: 150px;
+      height: auto;
+      margin: 10px;
+    }
+
+    .equipment-button {
+      display: flex;
+      justify-content: center;
+      margin: 10px 0;
+    }
+
+    .equipment-button img {
+      width: 60px;
+      height: 60px;
+      margin: 10px;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
@@ -77,16 +107,13 @@
     현재 코인: <span id="coin-count">1000</span> 코인
   </div>
 
-  <div id="mini-game-container">
-    <h3>미니게임</h3>
-    <button onclick="startMiniGame()">버거 만들기 미니게임</button>
-  </div>
-
   <div id="equipment-container">
     <h2>장비 구매</h2>
-    <button onclick="purchaseEquipment(0)">버거 제작기 (200 코인)</button>
-    <button onclick="purchaseEquipment(1)">코인 강화기 (300 코인)</button>
-    <button onclick="purchaseEquipment(2)">주문 처리기 (500 코인)</button>
+    <div class="equipment-button">
+      <img src="https://example.com/burger-machine.png" alt="버거 제작기" onclick="purchaseEquipment(0)" />
+      <img src="https://example.com/coin-booster.png" alt="코인 강화기" onclick="purchaseEquipment(1)" />
+      <img src="https://example.com/order-machine.png" alt="주문 처리기" onclick="purchaseEquipment(2)" />
+    </div>
 
     <h3>장비 강화</h3>
     <button onclick="upgradeEquipment(0)">버거 제작기 강화</button>
@@ -97,6 +124,16 @@
   <div id="equipment-status">
     <h3>장비 상태</h3>
     <p id="equipment-status-text"></p>
+  </div>
+
+  <div class="character">
+    <img src="https://example.com/spongebob.png" alt="스폰지밥" />
+    <img src="https://example.com/squidward.png" alt="징징이" />
+  </div>
+
+  <div id="mini-game-container">
+    <h3>미니게임</h3>
+    <button onclick="startMiniGame()">버거 만들기 미니게임</button>
   </div>
 
   <script>
