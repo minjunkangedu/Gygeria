@@ -46,34 +46,6 @@
             border-radius: 5px;
         }
 
-        #plankton-area {
-            position: relative;
-            width: 320px;
-            height: 200px;
-            margin: 0 auto;
-            background-color: rgba(0,0,0,0.4);
-        }
-
-        .plankton {
-            width: 30px;
-            height: 30px;
-            background: green;
-            color: white;
-            border-radius: 50%;
-            text-align: center;
-            line-height: 30px;
-            font-weight: bold;
-            cursor: pointer;
-            position: absolute;
-        }
-
-        .ingredients {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            margin-bottom: 30px;
-        }
-
         .ingredient {
             width: 100px;
             height: 100px;
@@ -94,11 +66,6 @@
 
         .ingredient-row {
             margin-top: 20px;
-        }
-
-        .timer {
-            font-size: 24px;
-            color: #ff3333;
         }
 
         .status {
@@ -150,7 +117,7 @@
             cursor: pointer;
             margin-top: 20px;
         }
-        
+
         .battle-btn:hover {
             background-color: #009955;
         }
@@ -175,6 +142,42 @@
         .battle-log p {
             font-size: 16px;
         }
+
+        .rank-display {
+            margin-top: 20px;
+        }
+
+        .shop-item {
+            padding: 10px 20px;
+            background-color: #ff6600;
+            color: white;
+            font-size: 18px;
+            border-radius: 8px;
+            margin-top: 10px;
+            cursor: pointer;
+        }
+
+        .shop-item:hover {
+            background-color: #ff3300;
+        }
+
+        .order-container {
+            margin-top: 20px;
+        }
+
+        .order-item {
+            padding: 12px 20px;
+            background-color: #ffcc00;
+            color: white;
+            font-size: 18px;
+            border-radius: 8px;
+            margin-top: 10px;
+            cursor: pointer;
+        }
+
+        .order-item:hover {
+            background-color: #ff9900;
+        }
     </style>
 </head>
 <body>
@@ -182,38 +185,54 @@
     <h1>크러스티 크랩 게임</h1>
     <div>
         <button class="menu-btn" onclick="showSection('hamburger-game')">햄버거 게임</button>
-        <button class="menu-btn" onclick="showSection('plankton-game')">플랑크톤 침략</button>
+        <button class="menu-btn" onclick="showSection('shop')">상점</button>
         <button class="menu-btn" onclick="showSection('gacha-section')">가챠</button>
         <button class="menu-btn" onclick="showSection('battlepass')">배틀패스</button>
         <button class="menu-btn" onclick="showSection('pvp-section')">PvP</button>
+        <button class="menu-btn" onclick="showSection('rank')">단골 랭크</button>
     </div>
-    <p>코인: <span id="coin-display">0</span> | 강화석: <span id="stones">0</span> | Lv.<span id="level">0</span></p>
+
+    <div>
+        <p>코인: <span id="coin-display">0</span> | 강화석: <span id="stones">0</span> | Lv.<span id="level">0</span></p>
+    </div>
 
     <!-- 햄버거 게임 -->
     <div class="section" id="hamburger-game">
         <h2>햄버거 만들기</h2>
         <p>주어진 재료로 햄버거를 만들어 보세요!</p>
-        <div class="ingredients">
-            <div class="ingredient" id="lettuce">상추</div>
-            <div class="ingredient" id="cheese">치즈</div>
-            <div class="ingredient" id="patty">패티</div>
-            <div class="ingredient" id="tomato">토마토</div>
-            <div class="ingredient" id="onion">양파</div>
-        </div>
+        <div class="ingredient" onclick="addIngredient('상추')">상추</div>
+        <div class="ingredient" onclick="addIngredient('치즈')">치즈</div>
+        <div class="ingredient" onclick="addIngredient('패티')">패티</div>
+        <div class="ingredient" onclick="addIngredient('토마토')">토마토</div>
+        <div class="ingredient" onclick="addIngredient('양파')">양파</div>
+        <div class="ingredient" onclick="addIngredient('치킨패티')">치킨 패티</div>
+        <div class="ingredient" onclick="addIngredient('양상추')">양상추</div>
+        <div class="ingredient" onclick="addIngredient('피클')">피클</div>
+        <div class="ingredient" onclick="addIngredient('소스')">소스</div>
         <div class="ingredient-row">
             <p>조합 순서: <span id="ingredient-sequence">상추, 치즈, 패티, 토마토, 양파</span></p>
             <button class="btn" onclick="makeBurger()">햄버거 만들기</button>
         </div>
     </div>
 
-    <!-- 플랑크톤 침략 -->
-    <div class="section" id="plankton-game">
-        <h2>플랑크톤 침략</h2>
-        <p>플랑크톤이 집게리아를 침략하려고 합니다. 제한 시간 내에 문제를 풀어 플랑크톤을 막아주세요!</p>
-        <div id="plankton-area">
-            <!-- 플랑크톤이 들어갈 공간 -->
-        </div>
-        <button class="btn" onclick="startPlanktonAttack()">침략 시작</button>
+    <!-- 단골 랭크 -->
+    <div class="section" id="rank">
+        <h2>단골 랭크</h2>
+        <p>단골 랭크: <span id="rank-display">뚱이: 300</span></p>
+        <p>목표: 뚱이의 구매 개수를 넘기세요!</p>
+    </div>
+
+    <!-- 상점 -->
+    <div class="section" id="shop">
+        <h2>상점</h2>
+        <p>오늘의 추천 메뉴:</p>
+        <div class="shop-item" onclick="buyItem('햄버거')">햄버거 (가격: 50 코인)</div>
+        <div class="shop-item" onclick="buyItem('음료수')">음료수 (가격: 30 코인)</div>
+        <div class="shop-item" onclick="buyItem('감자튀김')">감자튀김 (가격: 40 코인)</div>
+        <p>주간 메뉴:</p>
+        <div class="shop-item" onclick="buyItem('버거 세트')">버거 세트 (가격: 100 코인)</div>
+        <p>특별 메뉴:</p>
+        <div class="shop-item" onclick="buyItem('특별버거')">특별버거 (가격: 200 코인)</div>
     </div>
 
     <!-- 가챠 시스템 -->
@@ -228,147 +247,135 @@
     <div class="section" id="battlepass">
         <h2>배틀패스</h2>
         <p>현재 배틀패스 레벨: <span id="battlepass-level">1</span></p>
-        <div id="battlepass-rewards">
-            <!-- 보상 항목들이 동적으로 생성됩니다 -->
+        <div id="battlepass-info">
+            <p>배틀패스 레벨에 따라 보상이 다릅니다.</p>
         </div>
-        <button class="btn" onclick="levelUpBattlepass()">배틀패스 레벨업</button>
+        <button class="btn" onclick="levelUpBattlepass()">배틀패스 레벨 업</button>
     </div>
 
-    <!-- PvP -->
+    <!-- PvP 전투 -->
     <div class="section" id="pvp-section">
         <h2>PvP 전투</h2>
-        <p>상대 유저의 정보:</p>
-        <div class="battle-info" id="battle-info">
-            <!-- 상대 정보가 여기에 표시됩니다 -->
-        </div>
         <button class="battle-btn" onclick="startPvP()">PvP 시작</button>
-        <div class="battle-log" id="battle-log"></div>
+        <div id="battle-log" class="battle-log"></div>
     </div>
 
     <script>
-        let coins = 0;
-        let stones = 0;
-        let level = 0;
+        let playerCharacter = { name: '플래여', health: 100, attack: 20, defense: 15 };
+        let playerCoins = 0;
+        let playerRank = 0;
         let battlepassLevel = 1;
-        let playerCharacter = {
-            name: "스폰지밥",
-            health: 100,
-            attack: 20,
-            defense: 10,
-            specialAbility: "버거 조리 속도 증가"
-        };
 
-        const characters = [
-            { name: "스폰지밥", health: 100, attack: 20, defense: 10, specialAbility: "버거 조리 속도 증가" },
-            { name: "징징이", health: 120, attack: 25, defense: 15, specialAbility: "공격력 증가" },
-            { name: "뚱이", health: 150, attack: 30, defense: 20, specialAbility: "방어력 증가" },
-            { name: "황금 스폰지밥", health: 250, attack: 40, defense: 30, specialAbility: "모든 능력치 증가" }
-        ];
+        // 재료 추가 및 랜덤 조합 순서 생성
+        let ingredients = ['상추', '치즈', '패티', '토마토', '양파', '치킨패티', '양상추', '피클', '소스'];
+        let ingredientSequence = generateRandomSequence();
 
-        function updateDisplay() {
-            document.getElementById('coin-display').innerText = coins;
-            document.getElementById('stones').innerText = stones;
-            document.getElementById('level').innerText = level;
+        function generateRandomSequence() {
+            let shuffled = ingredients.sort(() => Math.random() - 0.5);
+            return shuffled.slice(0, 4); // 랜덤으로 4개의 재료를 선택
         }
 
-        function showSection(id) {
-            document.querySelectorAll('.section').forEach(div => div.style.display = 'none');
-            document.getElementById(id).style.display = 'block';
+        function addIngredient(ingredient) {
+            currentIngredients.push(ingredient);
+            document.getElementById('ingredient-sequence').innerText = currentIngredients.join(', ');
         }
 
-        // 햄버거 만들기
-        let ingredientSequence = ['상추', '치즈', '패티', '토마토', '양파'];
-        let userSequence = [];
         function makeBurger() {
-            if (JSON.stringify(ingredientSequence) === JSON.stringify(userSequence)) {
-                alert("햄버거 만들기 성공!");
-                coins += 10;
-                updateDisplay();
+            let success = true;
+            if (currentIngredients.length !== ingredientSequence.length) {
+                success = false;
             } else {
-                alert("햄버거 만들기 실패!");
+                for (let i = 0; i < ingredientSequence.length; i++) {
+                    if (currentIngredients[i] !== ingredientSequence[i]) {
+                        success = false;
+                        break;
+                    }
+                }
+            }
+
+            if (success) {
+                playerCoins += 10;
+                document.getElementById('coin-display').innerText = playerCoins;
+                alert("햄버거 조합 성공! 10 코인을 얻었습니다.");
+            } else {
+                alert("햄버거 조합 실패! 다시 시도해 보세요.");
+            }
+
+            // 새로운 랜덤 조합 생성
+            ingredientSequence = generateRandomSequence();
+            currentIngredients = [];
+        }
+
+        // 상점 아이템 구매
+        function buyItem(item) {
+            let cost = 0;
+            switch (item) {
+                case '햄버거':
+                    cost = 50;
+                    break;
+                case '음료수':
+                    cost = 30;
+                    break;
+                case '감자튀김':
+                    cost = 40;
+                    break;
+                case '버거 세트':
+                    cost = 100;
+                    break;
+                case '특별버거':
+                    cost = 200;
+                    break;
+            }
+
+            if (playerCoins >= cost) {
+                playerCoins -= cost;
+                document.getElementById('coin-display').innerText = playerCoins;
+                alert(`${item}를 구매했습니다!`);
+            } else {
+                alert("코인이 부족합니다.");
             }
         }
 
-        function selectIngredient(ingredient) {
-            userSequence.push(ingredient);
-            if (userSequence.length === ingredientSequence.length) {
-                makeBurger();
-            }
-        }
-
-        // 플랑크톤 침략
-        function startPlanktonAttack() {
-            alert("플랑크톤의 침략을 막아주세요!");
-        }
-
-        // 가챠 시스템
+        // 가챠
         function rollGacha() {
-            const randomIndex = Math.floor(Math.random() * characters.length);
-            const selectedCharacter = characters[randomIndex];
-            document.getElementById('gacha-result').innerText = `새로운 캐릭터 획득: ${selectedCharacter.name}`;
-        }
-
-        // 배틀패스
-        function levelUpBattlepass() {
-            if (battlepassLevel < 10) {
-                battlepassLevel++;
-                document.getElementById('battlepass-level').innerText = battlepassLevel;
-                displayBattlepassRewards();
-            } else {
-                alert("배틀패스 레벨이 이미 최고입니다!");
-            }
-        }
-
-        function displayBattlepassRewards() {
-            const rewards = [
-                { level: 1, reward: "코인 100" },
-                { level: 2, reward: "강화석 10개" },
-                { level: 3, reward: "새로운 캐릭터: 징징이" },
-                { level: 4, reward: "코인 200" },
-                { level: 5, reward: "새로운 캐릭터: 똑똑이" },
-                { level: 6, reward: "강화석 20개" },
-                { level: 7, reward: "황금 스폰지밥 캐릭터" },
-                { level: 8, reward: "코인 500" },
-                { level: 9, reward: "강화석 50개" },
-                { level: 10, reward: "최고의 보상: 모든 캐릭터 강화를 위한 특수 아이템" }
-            ];
-
-            const rewardElement = rewards.filter(r => r.level <= battlepassLevel).map(r => `<p>레벨 ${r.level}: ${r.reward}</p>`).join('');
-            document.getElementById('battlepass-rewards').innerHTML = rewardElement;
+            const characters = ['스폰지밥', '징징이', '파트너플래여'];
+            const character = characters[Math.floor(Math.random() * characters.length)];
+            document.getElementById('gacha-result').innerText = `새로운 캐릭터: ${character}`;
         }
 
         // PvP
         function startPvP() {
-            const opponent = characters[Math.floor(Math.random() * characters.length)];
-            const battleResult = battleSimulation(playerCharacter, opponent);
-            document.getElementById('battle-info').innerHTML = `
-                <p>상대: ${opponent.name}</p>
-                <p>체력: ${opponent.health}</p>
-                <p>공격력: ${opponent.attack}</p>
-                <p>방어력: ${opponent.defense}</p>
-                <p>특수 능력: ${opponent.specialAbility}</p>
-            `;
-            document.getElementById('battle-log').innerHTML = `<p>${battleResult}</p>`;
-        }
+            const enemy = { name: '라이벌1', health: 100, attack: 30, defense: 15 };
+            let playerDamage = playerCharacter.attack - enemy.defense;
+            let enemyDamage = enemy.attack - playerCharacter.defense;
 
-        function battleSimulation(player, enemy) {
-            let playerHealth = player.health;
-            let enemyHealth = enemy.health;
+            if (playerDamage < 0) playerDamage = 0;
+            if (enemyDamage < 0) enemyDamage = 0;
 
-            while (playerHealth > 0 && enemyHealth > 0) {
-                enemyHealth -= (player.attack - enemy.defense);
-                playerHealth -= (enemy.attack - player.defense);
-            }
+            enemy.health -= playerDamage;
+            playerCharacter.health -= enemyDamage;
 
-            if (playerHealth > 0) {
-                return `${player.name} 승리!`;
-            } else {
-                return `${enemy.name} 승리!`;
+            const battleLog = `전투 결과: ${playerCharacter.name}가 ${enemy.name}에게 ${playerDamage} 피해를 주었습니다.`;
+            document.getElementById('battle-log').innerText = battleLog;
+
+            if (enemy.health <= 0) {
+                alert(`${playerCharacter.name} 승리!`);
+            } else if (playerCharacter.health <= 0) {
+                alert(`${enemy.name} 승리!`);
             }
         }
 
-        updateDisplay();
-        displayBattlepassRewards();
+        // 배틀패스 레벨업
+        function levelUpBattlepass() {
+            battlepassLevel += 1;
+            document.getElementById('battlepass-level').innerText = battlepassLevel;
+            alert(`배틀패스 레벨 ${battlepassLevel}로 업그레이드되었습니다!`);
+        }
+
+        // 단골 랭크
+        function updateRank() {
+            document.getElementById('rank-display').innerText = `뚱이: ${playerRank}`;
+        }
     </script>
 </body>
 </html>
